@@ -5,8 +5,22 @@
   "description": "Browser assistant using Chrome's built-in AI",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "sidePanel",
+    "bookmarks",
+    "contextMenus"
   ],
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  
+  "action": {
+    "default_title": "Open Croc AI"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -14,10 +28,13 @@
         "https://medium.com/*",
         "https://*.nytimes.com/*",
         "https://*.theguardian.com/*",
-        "https://hindustantimes.com/*",
-        "https://*.indiatimes.com/*"
+        "https://*.hindustantimes.com/*",
+        "https://*.indiatimes.com/*",
+        "https://*.timesofindia.indiatimes.com/*" 
       ],
-      "js": ["content.js"]
+      "js": [
+        "content.js"
+      ]
     }
   ],
   "minimum_chrome_version": "129"

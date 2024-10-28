@@ -1,0 +1,43 @@
+/* in App.css */
+.matches {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .match {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  .match:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .match a {
+    color: #1a1a1a;
+    text-decoration: none;
+    font-size: 14px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    padding-left: 24px;
+  }
+  
+  .match a::before {
+    content: '🔖';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  /* Add some hover states */
+  .match a:hover {
+    color: #3b82f6;
+  }
