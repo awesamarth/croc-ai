@@ -5,10 +5,11 @@ import { getExplanationStream } from './utils/explain'
 import './App.css'
 
 function App() {
-  const [summary, setSummary] = useState<string>("")
-  const [loading, setLoading] = useState(false)
+  const [summaryArbitrary, setSummaryArbitrary] = useState<string>("")
+
   const [explanation, setExplanation] = useState<string>("")
   const [explaining, setExplaining] = useState(false)
+  const [summarizingArbitrary, setSummarizingArbitrary] = useState(false)
 
   const [bookmarkQuery, setBookmarkQuery] = useState("")
   const [bookmarkResults, setBookmarkResults] = useState("")
@@ -41,41 +42,30 @@ function App() {
         console.log("Calling handleExplainText with:", message.text);
         handleExplainText(message.text);
       }
+      else if (message.type === 'summarize' && message.text) {
+        handleSummarizeArbitrary(message.text);
+      }
     });
   }, []);
 
-  const handleSummarize = async () => {
+  const handleSummarizeArbitrary = async (text: string) => {
     try {
-      setLoading(true)
-
-      const canSummarize = await ai.summarizer.capabilities();
-      console.log(canSummarize)
-
-      // Get current tab's content
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-      const result = await chrome.scripting.executeScript({
-        target: { tabId: tab.id! },
-        func: () => document.body.innerText
-      })
-
-      const pageText = result[0].result
-      console.log(pageText)
-
-      // Use the summarization API
-      const summarizer = await ai.summarizer.create()
-      const summaryResult = await summarizer.summarize(pageText as string)
-      setSummary(summaryResult)
-
-      // Clean up
-      summarizer.destroy()
+      setSummarizingArbitrary(true);
+      setSummaryArbitrary('');
+      
+      const summarizer = await ai.summarizer.create();
+      const summary = await summarizer.summarize(text);
+      setSummaryArbitrary(summary);
+      
+      summarizer.destroy();
     } catch (error) {
-      console.error('Error:', error)
-      setSummary('Error summarizing page')
+      console.error('Error in handleSummarizeArbitrary:', error);
+      setSummaryArbitrary('Error summarizing arbitrary text');
     } finally {
-      setLoading(false)
+      setSummarizingArbitrary(false);
     }
   }
-
+  
   const handleBookmarkSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!bookmarkQuery.trim()) return
@@ -105,18 +95,14 @@ function App() {
           <p className="whitespace-pre-wrap">{explanation}</p>
         </div>
       )}
-      {/* Summarize section */}
-      <button
-        onClick={handleSummarize}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-        disabled={loading}
-      >
-        {loading ? 'Summarizing...' : 'Summarize Page'}
-      </button>
 
-      {summary && (
+
+      {/* Summarize section */}
+      {summarizingArbitrary && <p>Generating summary...</p>}
+
+      {summaryArbitrary && (
         <div className="mt-4 p-3 bg-gray-100 rounded">
-          <p>{summary}</p>
+          <p>{summaryArbitrary}</p>
         </div>
       )}
 

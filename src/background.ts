@@ -1,12 +1,17 @@
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.contextMenus.create({
-      id: "explainText",
-      title: "Explain text",
-      contexts: ["selection"]
-    });
+  chrome.contextMenus.create({
+    id: "explainText",
+    title: "Explain text",
+    contexts: ["selection"]
   });
+  chrome.contextMenus.create({
+    id: "summarizeText",
+    title: "Summarize text",
+    contexts: ["selection"]
+  });
+});
 
   chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     console.log("Context menu clicked:", info.menuItemId);
@@ -25,6 +30,17 @@ chrome.runtime.onInstalled.addListener(() => {
         });
       }, 500); // 500ms delay to ensure panel is ready
     }
+
+    else if (info.menuItemId === "summarizeText" && info.selectionText) {
+            //@ts-ignore
+
+      await chrome.sidePanel.open({ windowId: tab.windowId });
+      setTimeout(() => {
+        chrome.runtime.sendMessage({
+          type: "summarize",
+          text: info.selectionText
+        });
+      }, 500);}
   });
   
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
