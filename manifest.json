@@ -8,7 +8,8 @@
     "scripting",
     "sidePanel",
     "bookmarks",
-    "contextMenus"
+    "contextMenus",
+    "storage"
   ],
   "side_panel": {
     "default_path": "index.html"
@@ -23,15 +24,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://*.medium.com/*",
-        "https://medium.com/*",
-        "https://*.nytimes.com/*",
-        "https://*.theguardian.com/*",
-        "https://*.hindustantimes.com/*",
-        "https://*.indiatimes.com/*",
-        "https://*.timesofindia.indiatimes.com/*" 
-      ],
+      "matches": ["<all_urls>"],
+
       "js": [
         "content.js"
       ]

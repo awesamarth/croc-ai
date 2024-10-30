@@ -3,10 +3,28 @@ import { searchBookmarksWithAI } from './utils/bookmarks'
 import { getExplanationStream } from './utils/explain'
 
 import './App.css'
+import { handleSummarizeArbitrary } from './utils/summarize_arbitrary'
+
+type SupportedLanguage = {
+  code: string;
+  name: string;
+}
+
+// Add supported languages from the docs
+const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
+  { code: 'en', name: 'English' },
+  {code: 'hi', name: 'Hindi'},
+  { code: 'es', name: 'Spanish' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'de', name: 'German' },
+  { code: 'fr', name: 'French' },
+  // Add other supported languages as needed
+];
 
 function App() {
   const [summaryArbitrary, setSummaryArbitrary] = useState<string>("")
-
+  const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(false);
+  const [targetLanguage, setTargetLanguage] = useState(SUPPORTED_LANGUAGES[0].code);
   const [explanation, setExplanation] = useState<string>("")
   const [explaining, setExplaining] = useState(false)
   const [summarizingArbitrary, setSummarizingArbitrary] = useState(false)
@@ -35,6 +53,13 @@ function App() {
       setExplaining(false);
     }
   }
+
+  useEffect(() => {
+    chrome.storage.local.set({
+      autoTranslateEnabled,
+      targetLanguage
+    });
+  }, [autoTranslateEnabled, targetLanguage]);
   useEffect(() => {
     chrome.runtime.onMessage.addListener((message) => {
       console.log("Message received in App:", message);
@@ -43,29 +68,19 @@ function App() {
         handleExplainText(message.text);
       }
       else if (message.type === 'summarize' && message.text) {
-        handleSummarizeArbitrary(message.text);
+        handleSummarizeArbitrary(
+          message.text,
+          () => setSummarizingArbitrary(true),
+          (summary) => setSummaryArbitrary(summary),
+          (error) => setSummaryArbitrary(error),
+          () => setSummarizingArbitrary(false)
+        );
+      
       }
     });
   }, []);
 
-  const handleSummarizeArbitrary = async (text: string) => {
-    try {
-      setSummarizingArbitrary(true);
-      setSummaryArbitrary('');
-      
-      const summarizer = await ai.summarizer.create();
-      const summary = await summarizer.summarize(text);
-      setSummaryArbitrary(summary);
-      
-      summarizer.destroy();
-    } catch (error) {
-      console.error('Error in handleSummarizeArbitrary:', error);
-      setSummaryArbitrary('Error summarizing arbitrary text');
-    } finally {
-      setSummarizingArbitrary(false);
-    }
-  }
-  
+
   const handleBookmarkSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!bookmarkQuery.trim()) return
@@ -87,7 +102,33 @@ function App() {
 
   return (
     <div className="w-96 min-h-[200px] p-4 flex flex-col gap-4">
-
+      <div className="flex items-center justify-between p-2 border rounded">
+        <div className="flex items-center gap-2">
+          <span>Auto-translate</span>
+          <span className='ml-2'>to</span>
+          <select 
+            className="ml-2 p-1 border rounded"
+            value={targetLanguage}
+            onChange={(e) => setTargetLanguage(e.target.value)}
+            disabled={!autoTranslateEnabled}
+          >
+            {SUPPORTED_LANGUAGES.map(lang => (
+              <option key={lang.code} value={lang.code}>
+                {lang.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={autoTranslateEnabled}
+            onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
+          />
+          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
       {explaining && <p>Generating explanation...</p>}
       {explanation && (
         <div className="mt-4 p-3 bg-gray-100 rounded">
