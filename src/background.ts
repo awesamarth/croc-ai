@@ -17,6 +17,12 @@ chrome.runtime.onInstalled.addListener(() => {
     title: 'Translate selection',
     contexts: ['selection']
   });
+
+  chrome.contextMenus.create({
+    id: "readText",
+    title: "Read text aloud",
+    contexts: ["selection"]
+  });
 });
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -67,6 +73,27 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       text: info.selectionText,
       targetLanguage
     });
+  }
+
+  else if (info.menuItemId === "readText" && info.selectionText && tab?.id) {
+    // First ensure the content script is injected
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          // This just checks if the script is already injected
+          return true;
+        }
+      });
+      
+      // Now send the message
+      chrome.tabs.sendMessage(tab.id, {
+        type: "readAloud",
+        text: info.selectionText
+      });
+    } catch (error) {
+      console.error('Error injecting content script:', error);
+    }
   }
 });
 

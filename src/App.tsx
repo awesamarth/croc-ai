@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import { searchBookmarksWithAI } from './utils/bookmarks'
 import { getExplanationStream } from './utils/explain'
+import { captureAndSaveScreenshot } from './utils/screenshot';
+
+
+
 
 import './App.css'
 import { handleSummarizeArbitrary } from './utils/summarize_arbitrary'
+import { AudioControls } from './components/AudioControls';
 
 type SupportedLanguage = {
   code: string;
@@ -13,7 +18,7 @@ type SupportedLanguage = {
 // Add supported languages from the docs
 const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
   { code: 'en', name: 'English' },
-  {code: 'hi', name: 'Hindi'},
+  { code: 'hi', name: 'Hindi' },
   { code: 'es', name: 'Spanish' },
   { code: 'ja', name: 'Japanese' },
   { code: 'de', name: 'German' },
@@ -28,6 +33,10 @@ function App() {
   const [explanation, setExplanation] = useState<string>("")
   const [explaining, setExplaining] = useState(false)
   const [summarizingArbitrary, setSummarizingArbitrary] = useState(false)
+  const [takingScreenshot, setTakingScreenshot] = useState(false);
+  const [showCopiedMessage, setShowCopiedMessage] = useState(false)
+
+  const [textToRead, setTextToRead] = useState<string | null>(null);
 
   const [bookmarkQuery, setBookmarkQuery] = useState("")
   const [bookmarkResults, setBookmarkResults] = useState("")
@@ -38,13 +47,13 @@ function App() {
     try {
       setExplaining(true);
       setExplanation('');
-      
+
       console.log("About to call getExplanationStream");
       await getExplanationStream(text, (newChunk) => {
         console.log("Received new chunk:", newChunk);
         setExplanation(prev => prev + newChunk);
       });
-  
+
     } catch (error) {
       console.error('Error in handleExplainText:', error);
       setExplanation('Error explaining text');
@@ -75,7 +84,7 @@ function App() {
           (error) => setSummaryArbitrary(error),
           () => setSummarizingArbitrary(false)
         );
-      
+
       }
     });
   }, []);
@@ -96,9 +105,26 @@ function App() {
       setBookmarkLoading(false)
     }
   }
+  const handleScreenshot = async () => {
+    try {
+      setTakingScreenshot(true);
+      await captureAndSaveScreenshot();
 
+      // Show "Copied!" message
+      setShowCopiedMessage(true);
 
+      // Hide message after 2 seconds
+      setTimeout(() => {
+        setShowCopiedMessage(false);
+      }, 2000);
 
+    } catch (error) {
+      console.error('Screenshot error in component:', error);
+      alert(`Failed to take screenshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setTakingScreenshot(false);
+    }
+  };
 
   return (
     <div className="w-96 min-h-[200px] p-4 flex flex-col gap-4">
@@ -106,7 +132,7 @@ function App() {
         <div className="flex items-center gap-2">
           <span>Auto-translate</span>
           <span className='ml-2'>to</span>
-          <select 
+          <select
             className="ml-2 p-1 border rounded"
             value={targetLanguage}
             onChange={(e) => setTargetLanguage(e.target.value)}
@@ -142,8 +168,14 @@ function App() {
       {summarizingArbitrary && <p>Generating summary...</p>}
 
       {summaryArbitrary && (
-        <div className="mt-4 p-3 bg-gray-100 rounded">
+        <div className="mt-4 p-3 bg-gray-100 rounded relative">
           <p>{summaryArbitrary}</p>
+          <button
+            onClick={() => setTextToRead(summaryArbitrary)}
+            className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-200"
+          >
+            <div className="w-6 h-6" >speak</div>
+          </button>
         </div>
       )}
 
@@ -186,6 +218,29 @@ function App() {
           />
         )}
       </div>
+
+      {/* screenshot section temp */}
+      <div className="relative">
+        <button
+          onClick={handleScreenshot}
+          disabled={takingScreenshot}
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 w-full"
+        >
+          {takingScreenshot ? 'Taking Screenshot...' : 'Take Screenshot'}
+        </button>
+        {showCopiedMessage && (
+          <div className="absolute top-[-24px] left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-2 py-1 rounded text-sm">
+            Copied to clipboard!
+          </div>
+        )}
+      </div>
+
+      {textToRead && (
+        <AudioControls
+          text={textToRead}
+          onClose={() => setTextToRead(null)}
+        />
+      )}
     </div>
   )
 }

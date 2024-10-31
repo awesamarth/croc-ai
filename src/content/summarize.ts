@@ -1,3 +1,6 @@
+import { createAudioControls } from '../utils/tts';
+
+
 // Selectors for different sites' article content
 const SELECTORS = {
   'medium.com': 'article',
@@ -86,6 +89,7 @@ const extractArticleText = (): string => {
 const injectStyles = () => {
   const style = document.createElement('style')
   style.textContent = `
+
       .croc-button-container {
         position: fixed;
         bottom: 1rem;
@@ -127,6 +131,68 @@ const injectStyles = () => {
         font-weight: bold;
         margin-bottom: 0.5rem;
       }
+      
+      .croc-summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .croc-speaker-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .croc-speaker-button:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+
+      .croc-audio-controls {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 1px solid #ddd;
+        padding: 1rem;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 10000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .croc-speed-controls {
+        display: flex;
+        gap: 8px;
+      }
+
+      .croc-speed-button {
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        cursor: pointer;
+      }
+
+      .croc-speed-button.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+
+      .croc-audio-controls button {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
     `
   document.head.appendChild(style)
 }
@@ -135,11 +201,11 @@ const injectStyles = () => {
 
 
 // Create and inject the summary UI
-const createSummaryUI = async() => {
+const createSummaryUI = async () => {
   console.log("Hostname:", window.location.hostname);
   const selector = getSelector(window.location.hostname);
   console.log("Using selector:", selector);
-  
+
   // Wait for the element
   const article = await waitForElement(selector);
   console.log("Found article:", article);
@@ -176,7 +242,6 @@ const createSummaryUI = async() => {
 
   // Handle click
   // In the click handler where you create the summary:
-  // In the click handler where you create the summary:
   button.addEventListener('click', async () => {
     try {
       button.disabled = true
@@ -192,28 +257,47 @@ const createSummaryUI = async() => {
       // Create and inject summary
       const summaryContainer = document.createElement('div')
       summaryContainer.className = 'croc-summary-container'
+
+      const summaryHeader = document.createElement('div')
+      summaryHeader.className = 'croc-summary-header'
+
       const summaryTitle = document.createElement('h2')
       summaryTitle.className = 'croc-summary-title'
       summaryTitle.textContent = 'Summary'
 
+      const speakerButton = document.createElement('button')
+      speakerButton.className = 'croc-speaker-button'
+      speakerButton.innerHTML = `<span>speak</span>`
+      speakerButton.setAttribute('aria-label', 'Read summary aloud')
 
-      // Then in your click handler, modify the summary insertion:
-      const summaryText = document.createElement('div') // Change to div instead of p
-      summaryText.innerHTML = convertMarkdownToHtml(summary) // Use innerHTML instead of textContent
+      summaryHeader.appendChild(summaryTitle)
+      summaryHeader.appendChild(speakerButton)
+
+      const summaryText = document.createElement('div')
+      summaryText.innerHTML = convertMarkdownToHtml(summary)
       summaryText.className = 'croc-summary-text'
 
-
-      summaryContainer.appendChild(summaryTitle)
+      summaryContainer.appendChild(summaryHeader)
       summaryContainer.appendChild(summaryText)
 
-      // Find the first h1 and insert after it
+      // Add click handler for speaker button
+
+      speakerButton.addEventListener('click', () => {
+        const textToSpeak = summaryText.textContent || '';
+        if (!textToSpeak.trim()) {
+          console.error("No text to speak");
+          return;
+        }
+        createAudioControls(textToSpeak);
+      });
+      // Insert the summary container after the first h1
       const firstH1 = document.querySelector('h1')
       if (firstH1) {
         firstH1.parentNode?.insertBefore(summaryContainer, firstH1.nextSibling)
       } else {
-        // Fallback - just append to body if no h1 found
         document.body.appendChild(summaryContainer)
       }
+
 
       // Reset button
       button.disabled = false
@@ -239,3 +323,92 @@ export const initializeSummarize = () => {
     createSummaryUI()
   }
 }
+
+// Add this at the bottom of summarize.ts, near initializeSummarize
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === 'readAloud' && message.text) {
+    console.log("pohocha")
+    const textToSpeak = message.text;
+    
+    // Remove any existing audio controls
+    const existingControls = document.querySelector('.croc-audio-controls');
+    if (existingControls) {
+      existingControls.remove();
+    }
+
+    // Create audio controls
+    const audioControls = document.createElement('div');
+    audioControls.className = 'croc-audio-controls';
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.rate = 1; // Set default speed
+    let currentSpeed = 1;
+    let isPlaying = true;
+
+    // Start speaking immediately
+    speechSynthesis.speak(utterance);
+
+    // Create play/pause button
+    const playPauseButton = document.createElement('button');
+    playPauseButton.innerHTML = `<span>pause</span>`;
+
+    // Create speed controls
+    const speedControls = document.createElement('div');
+    speedControls.className = 'croc-speed-controls';
+    
+    [0.5, 0.75, 1, 1.5, 2].forEach(speed => {
+      const speedButton = document.createElement('button');
+      speedButton.className = `croc-speed-button ${speed === currentSpeed ? 'active' : ''}`;
+      speedButton.textContent = `${speed}x`;
+      speedButton.onclick = () => {
+        utterance.rate = speed;
+        currentSpeed = speed;
+        speedControls.querySelectorAll('.croc-speed-button').forEach(btn => 
+          btn.classList.toggle('active', btn === speedButton)
+        );
+        if (isPlaying) {
+          speechSynthesis.cancel();
+          utterance.rate = currentSpeed;
+          speechSynthesis.speak(utterance);
+        }
+      };
+      speedControls.appendChild(speedButton);
+    });
+
+    playPauseButton.onclick = () => {
+      if (isPlaying) {
+        speechSynthesis.pause();
+        playPauseButton.innerHTML = `<span>play</span>`;
+      } else {
+        if (speechSynthesis.paused) {
+          speechSynthesis.resume();
+        } else {
+          utterance.rate = currentSpeed;
+          speechSynthesis.speak(utterance);
+        }
+        playPauseButton.innerHTML = `<span>pause</span>`;
+      }
+      isPlaying = !isPlaying;
+    };
+
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = `<span>close</span>`;
+    closeButton.onclick = () => {
+      speechSynthesis.cancel();
+      audioControls.remove();
+    };
+
+    // Add event handlers for utterance
+    utterance.onend = () => {
+      isPlaying = false;
+      playPauseButton.innerHTML = `<span>play</span>`;
+    };
+
+    // Assemble controls
+    audioControls.appendChild(playPauseButton);
+    audioControls.appendChild(speedControls);
+    audioControls.appendChild(closeButton);
+    document.body.appendChild(audioControls);
+  }
+});
