@@ -12,6 +12,8 @@ const SELECTORS = {
 }
 
 console.log('Content script loaded for:', window.location.href);
+
+
 const waitForElement = (selector: string, maxWait = 5000): Promise<Element | null> => {
   return new Promise((resolve) => {
     if (document.querySelector(selector)) {
@@ -312,6 +314,17 @@ const createSummaryUI = async () => {
 
 export const initializeSummarize = () => {
   // Wait for page to be fully loaded
+
+  const currentHostname = window.location.hostname;
+  const isSupportedSite = Object.keys(SELECTORS).some(domain => 
+    currentHostname.includes(domain)
+  );
+
+  if (!isSupportedSite) {
+    console.log("won't summarize ", currentHostname);
+    return;
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       console.log("content has been loaded completely")
