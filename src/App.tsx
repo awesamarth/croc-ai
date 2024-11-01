@@ -9,6 +9,7 @@ import { captureAndSaveScreenshot } from './utils/screenshot';
 import './App.css'
 import { handleSummarizeArbitrary } from './utils/summarize_arbitrary'
 import { AudioControls } from './components/AudioControls';
+import { searchTabsWithAI } from './utils/tabs';
 
 type SupportedLanguage = {
   code: string;
@@ -35,7 +36,9 @@ function App() {
   const [summarizingArbitrary, setSummarizingArbitrary] = useState(false)
   const [takingScreenshot, setTakingScreenshot] = useState(false);
   const [showCopiedMessage, setShowCopiedMessage] = useState(false)
-
+  const [tabQuery, setTabQuery] = useState("")
+  const [tabResults, setTabResults] = useState("")
+  const [tabLoading, setTabLoading] = useState(false)
   const [textToRead, setTextToRead] = useState<string | null>(null);
 
   const [bookmarkQuery, setBookmarkQuery] = useState("")
@@ -103,6 +106,21 @@ function App() {
       setBookmarkResults('Error searching bookmarks')
     } finally {
       setBookmarkLoading(false)
+    }
+  }
+  const handleTabSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!tabQuery.trim()) return
+
+    try {
+      setTabLoading(true)
+      const results = await searchTabsWithAI(tabQuery)
+      setTabResults(results)
+    } catch (error) {
+      console.error('Error searching tabs:', error)
+      setTabResults('Error searching tabs')
+    } finally {
+      setTabLoading(false)
     }
   }
   const handleScreenshot = async () => {
@@ -233,6 +251,56 @@ function App() {
             Copied to clipboard!
           </div>
         )}
+      </div>
+
+      {/* Tab search section */}
+      <div className="border-t pt-4 mt-4">
+        <form onSubmit={handleTabSearch} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={tabQuery}
+            onChange={(e) => setTabQuery(e.target.value)}
+            placeholder="Search your open tabs..."
+            className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={tabLoading}
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+            disabled={tabLoading}
+          >
+            {tabLoading ? 'Searching...' : 'Search Tabs'}
+          </button>
+        </form>
+
+        {tabResults && (
+  <div
+    className="mt-4 p-3 bg-gray-100 rounded"
+    dangerouslySetInnerHTML={{ __html: tabResults }}
+    onClick={async (e) => {
+      // Handle link clicks
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'A') {
+        e.preventDefault();
+        const tabId = target.getAttribute('data-tab-id');
+        if (tabId) {
+          try {
+            // Switch to the clicked tab
+            await chrome.tabs.update(parseInt(tabId), { active: true });
+            // Optionally, focus the window containing the tab
+            const tab = await chrome.tabs.get(parseInt(tabId));
+            if (tab.windowId) {
+              await chrome.windows.update(tab.windowId, { focused: true });
+            }
+          } catch (error) {
+            console.error('Error switching to tab:', error);
+            alert('Could not switch to the selected tab. It may have been closed.');
+          }
+        }
+      }
+    }}
+  />
+)}
       </div>
 
       {textToRead && (
