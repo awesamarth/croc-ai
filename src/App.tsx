@@ -2,14 +2,11 @@ import { useEffect, useState } from 'react'
 import { searchBookmarksWithAI } from './utils/bookmarks'
 import { getExplanationStream } from './utils/explain'
 import { captureAndSaveScreenshot } from './utils/screenshot';
-
-
-
-
 import './App.css'
 import { handleSummarizeArbitrary } from './utils/summarize_arbitrary'
 import { AudioControls } from './components/AudioControls';
 import { searchTabsWithAI } from './utils/tabs';
+import { searchHistoryWithAI } from './utils/history'
 
 type SupportedLanguage = {
   code: string;
@@ -44,6 +41,10 @@ function App() {
   const [bookmarkQuery, setBookmarkQuery] = useState("")
   const [bookmarkResults, setBookmarkResults] = useState("")
   const [bookmarkLoading, setBookmarkLoading] = useState(false)
+
+  const [historyQuery, setHistoryQuery] = useState("")
+  const [historyResults, setHistoryResults] = useState("")
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   const handleExplainText = async (text: string) => {
     console.log("handleExplainText started with:", text);
@@ -143,6 +144,21 @@ function App() {
       setTakingScreenshot(false);
     }
   };
+  const handleHistorySearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!historyQuery.trim()) return
+
+    try {
+      setHistoryLoading(true)
+      const results = await searchHistoryWithAI(historyQuery)
+      setHistoryResults(results)
+    } catch (error) {
+      console.error('Error searching history:', error)
+      setHistoryResults('Error searching history')
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
 
   return (
     <div className="w-96 min-h-[200px] p-4 flex flex-col gap-4">
@@ -274,35 +290,75 @@ function App() {
         </form>
 
         {tabResults && (
-  <div
-    className="mt-4 p-3 bg-gray-100 rounded"
-    dangerouslySetInnerHTML={{ __html: tabResults }}
-    onClick={async (e) => {
-      // Handle link clicks
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'A') {
-        e.preventDefault();
-        const tabId = target.getAttribute('data-tab-id');
-        if (tabId) {
-          try {
-            // Switch to the clicked tab
-            await chrome.tabs.update(parseInt(tabId), { active: true });
-            // Optionally, focus the window containing the tab
-            const tab = await chrome.tabs.get(parseInt(tabId));
-            if (tab.windowId) {
-              await chrome.windows.update(tab.windowId, { focused: true });
-            }
-          } catch (error) {
-            console.error('Error switching to tab:', error);
-            alert('Could not switch to the selected tab. It may have been closed.');
-          }
-        }
-      }
-    }}
-  />
-)}
+          <div
+            className="mt-4 p-3 bg-gray-100 rounded"
+            dangerouslySetInnerHTML={{ __html: tabResults }}
+            onClick={async (e) => {
+              // Handle link clicks
+              const target = e.target as HTMLElement;
+              if (target.tagName === 'A') {
+                e.preventDefault();
+                const tabId = target.getAttribute('data-tab-id');
+                if (tabId) {
+                  try {
+                    // Switch to the clicked tab
+                    await chrome.tabs.update(parseInt(tabId), { active: true });
+                    // Optionally, focus the window containing the tab
+                    const tab = await chrome.tabs.get(parseInt(tabId));
+                    if (tab.windowId) {
+                      await chrome.windows.update(tab.windowId, { focused: true });
+                    }
+                  } catch (error) {
+                    console.error('Error switching to tab:', error);
+                    alert('Could not switch to the selected tab. It may have been closed.');
+                  }
+                }
+              }
+            }}
+          />
+        )}
       </div>
 
+      <div className="border-t pt-4 mt-4">
+        <form onSubmit={handleHistorySearch} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={historyQuery}
+            onChange={(e) => setHistoryQuery(e.target.value)}
+            placeholder="Search your history..."
+            className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={historyLoading}
+          />
+          <button
+            type="submit"
+            className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 disabled:bg-gray-400"
+            disabled={historyLoading}
+          >
+            {historyLoading ? 'Searching...' : 'Search History'}
+          </button>
+        </form>
+
+        {historyResults && (
+          <div
+            className="mt-4 p-3 bg-gray-100 rounded"
+            dangerouslySetInnerHTML={{ __html: historyResults }}
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.tagName === 'A') {
+                e.preventDefault();
+                const url = target.getAttribute('href');
+                if (url) {
+                  chrome.tabs.create({ url });
+                }
+              }
+            }}
+          />
+        )}
+      </div>
+
+
+
+      {/* tts section */}
       {textToRead && (
         <AudioControls
           text={textToRead}

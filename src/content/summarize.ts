@@ -7,7 +7,8 @@ const SELECTORS = {
   'nytimes.com': 'article[data-testid="block-stream"]',
   'theguardian.com': 'article',
   'hindustantimes.com': 'p',
-  'timesofindia.indiatimes.com': 'div[data-articlebody="1"].js_tbl_article'  // More specific selector
+  'timesofindia.indiatimes.com': 'div[data-articlebody="1"].js_tbl_article',
+  'hashnode.dev': 'div[class*="prose"]'
 
 }
 
@@ -62,6 +63,20 @@ const extractArticleText = (): string => {
 
     console.log("paragraphs are")
     console.log(paragraphs)
+    return paragraphs
+  }
+
+  if (hostname.includes('hashnode.dev')) {
+    const article = document.querySelector('div[class*="prose"]')
+    if (!article) return ''
+    
+    // Get all text content except code blocks and metadata
+    const paragraphs = Array.from(article.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
+      .filter(el => !el.closest('pre')) // Exclude code blocks
+      .map(p => p.textContent?.trim())
+      .filter(text => text)
+      .join('\n')
+    
     return paragraphs
   }
 
@@ -122,16 +137,19 @@ const injectStyles = () => {
         padding: 1rem;
         border-radius: 0.25rem;
         margin: 1rem 0;
+        color: #000000 !important; /* Force black text */
       }
 
-      .croc-summary-text {  /* Add this new class */
+      .croc-summary-text {
         font-size: 18px;
         line-height: 1.5;
+        color: #000000 !important; /* Force black text */
       }
       
       .croc-summary-title {
         font-weight: bold;
         margin-bottom: 0.5rem;
+        color: #000000 !important; /* Force black text */
       }
       
       .croc-summary-header {
@@ -316,7 +334,7 @@ export const initializeSummarize = () => {
   // Wait for page to be fully loaded
 
   const currentHostname = window.location.hostname;
-  const isSupportedSite = Object.keys(SELECTORS).some(domain => 
+  const isSupportedSite = Object.keys(SELECTORS).some(domain =>
     currentHostname.includes(domain)
   );
 
@@ -342,7 +360,7 @@ chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'readAloud' && message.text) {
     console.log("pohocha")
     const textToSpeak = message.text;
-    
+
     // Remove any existing audio controls
     const existingControls = document.querySelector('.croc-audio-controls');
     if (existingControls) {
@@ -368,7 +386,7 @@ chrome.runtime.onMessage.addListener((message) => {
     // Create speed controls
     const speedControls = document.createElement('div');
     speedControls.className = 'croc-speed-controls';
-    
+
     [0.5, 0.75, 1, 1.5, 2].forEach(speed => {
       const speedButton = document.createElement('button');
       speedButton.className = `croc-speed-button ${speed === currentSpeed ? 'active' : ''}`;
@@ -376,7 +394,7 @@ chrome.runtime.onMessage.addListener((message) => {
       speedButton.onclick = () => {
         utterance.rate = speed;
         currentSpeed = speed;
-        speedControls.querySelectorAll('.croc-speed-button').forEach(btn => 
+        speedControls.querySelectorAll('.croc-speed-button').forEach(btn =>
           btn.classList.toggle('active', btn === speedButton)
         );
         if (isPlaying) {
