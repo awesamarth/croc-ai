@@ -34,21 +34,34 @@ interface HistoryItem {
   
       //@ts-ignore
       const session = await ai.languageModel.create({
-        systemPrompt: `IMPORTANT: You MUST ONLY respond in English.
-        You will see a numbered list of browser history titles.
-        When matching items, use ONLY their numbers in your response.
+        systemPrompt: `You are a natural language search assistant. You will see a numbered list of browser history titles.
+        When matching items, use ONLY their numbers in your response. 
+        
+        IMPORTANT
+        MIN NUMBER OF RESULTS: 0 (ZERO)
+        MAX NUMBER OF RESULTS: 5 (FIVE)
+           
+        If no relevant items found, output EXACTLY:
+        "No matching history items found."
+
         Format your response as:
         <div class="matches">
         <div class="match">[NUMBER]</div>
         <div class="match">....</div>
         </div>
         
-        If no matches found, respond EXACTLY:
-        "No matching history items found."
+
+
+
+
+
         `
       });
   
-      const prompt = `Find relevant items from this list matching: "${query}"\nList:\n${historyList}`;
+      const prompt = `The user searched for: "${query}"\nWhat might they be looking for from this list? They need a high accuracy.\n\nList:\n${historyList}`;
+
+      console.log("given prompt is: ")
+      console.log(prompt)
       
       const response = await session.prompt(prompt);
 
