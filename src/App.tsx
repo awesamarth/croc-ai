@@ -6,7 +6,8 @@ import './App.css'
 import { handleSummarizeArbitrary } from './utils/summarize_arbitrary'
 import { AudioControls } from './components/AudioControls';
 import { searchTabsWithAI } from './utils/tabs';
-import { searchHistoryWithAI } from './utils/history'
+import { searchHistoryWithAI, clearHistory, type HistoryClearOption } from './utils/history'
+import { addToReadingList } from './utils/readingList';
 
 type SupportedLanguage = {
   code: string;
@@ -45,7 +46,10 @@ function App() {
   const [historyQuery, setHistoryQuery] = useState("")
   const [historyResults, setHistoryResults] = useState("")
   const [historyLoading, setHistoryLoading] = useState(false)
-
+  const [clearingHistory, setClearingHistory] = useState(false);
+  const [clearHistoryMessage, setClearHistoryMessage] = useState("");
+  const [addingToReadingList, setAddingToReadingList] = useState(false);
+  const [readingListMessage, setReadingListMessage] = useState("");
   const handleExplainText = async (text: string) => {
     console.log("handleExplainText started with:", text);
     try {
@@ -157,6 +161,42 @@ function App() {
       setHistoryResults('Error searching history')
     } finally {
       setHistoryLoading(false)
+    }
+  }
+  const handleClearHistory = async (option: HistoryClearOption) => {
+    try {
+      setClearingHistory(true);
+      const result = await clearHistory(option);
+      setClearHistoryMessage(result);
+
+      // Clear the message after 3 seconds
+      setTimeout(() => {
+        setClearHistoryMessage("");
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error clearing history:', error);
+      setClearHistoryMessage(`Error clearing history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setClearingHistory(false);
+    }
+  };
+
+  const handleAddToReadingList = async () => {
+    try {
+      setAddingToReadingList(true);
+      const result = await addToReadingList();
+      setReadingListMessage(result);
+
+      // Clear the message after 3 seconds
+      setTimeout(() => {
+        setReadingListMessage("");
+      }, 3000);
+    } catch (error) {
+      console.error('Error adding to reading list:', error);
+      setReadingListMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setAddingToReadingList(false);
     }
   }
 
@@ -319,6 +359,7 @@ function App() {
         )}
       </div>
 
+      {/* /history search section*  */}
       <div className="border-t pt-4 mt-4">
         <form onSubmit={handleHistorySearch} className="flex flex-col gap-3">
           <input
@@ -355,6 +396,60 @@ function App() {
           />
         )}
       </div>
+
+      {/* clear history section */}
+      <div className="border-t pt-4 mt-4">
+        <h3 className="font-semibold mb-2">Clear Browser History</h3>
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleClearHistory('last24h')}
+            disabled={clearingHistory}
+            className="flex-1 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:bg-gray-400"
+          >
+            {clearingHistory ? 'Clearing...' : 'Clear Last 24 Hours'}
+          </button>
+          <button
+            onClick={() => handleClearHistory('allTime')}
+            disabled={clearingHistory}
+            className="flex-1 bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800 disabled:bg-gray-400"
+          >
+            {clearingHistory ? 'Clearing...' : 'Clear All History'}
+          </button>
+        </div>
+        {clearHistoryMessage && (
+          <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
+            {clearHistoryMessage}
+          </div>
+        )}
+      </div>
+
+      {/* add to reading list  */}
+      
+      <div className="border-t pt-4">
+        <button
+          onClick={handleAddToReadingList}
+          disabled={addingToReadingList}
+          className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 flex items-center justify-center gap-2"
+        >
+          {addingToReadingList ? (
+            <>
+              <span className="animate-spin">↻</span>
+              Adding to Reading List...
+            </>
+          ) : (
+            <>
+              <span>📚</span>
+              Add to Reading List
+            </>
+          )}
+        </button>
+        {readingListMessage && (
+          <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
+            {readingListMessage}
+          </div>
+        )}
+      </div>
+
 
 
 

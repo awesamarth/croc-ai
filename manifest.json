@@ -13,7 +13,8 @@
     "storage",
     "tabs",
     "clipboardWrite",
-    "history"
+    "history",
+    "readingList"
   ],
 
   "host_permissions": [
