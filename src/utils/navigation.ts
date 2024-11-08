@@ -17,6 +17,7 @@ export async function handleNavigation(userPrompt: string): Promise<boolean> {
   
         For YouTube searches, return URLs in this format:
         https://www.youtube.com/results?search_query=SEARCH_TERMS_HERE
+        remember that youtube searches will ALWAYS be search queries. output ONLY search_query links. Else 5 marks will be deducted.
   
         For websites:
         - Return clean URLs (include https://)
