@@ -8,6 +8,8 @@ import { AudioControls } from './components/AudioControls';
 import { searchTabsWithAI } from './utils/tabs';
 import { searchHistoryWithAI, clearHistory, type HistoryClearOption } from './utils/history'
 import { addToReadingList } from './utils/readingList';
+import { handleNavigation } from './utils/navigation'  
+
 
 type SupportedLanguage = {
   code: string;
@@ -50,6 +52,11 @@ function App() {
   const [clearHistoryMessage, setClearHistoryMessage] = useState("");
   const [addingToReadingList, setAddingToReadingList] = useState(false);
   const [readingListMessage, setReadingListMessage] = useState("");
+
+  const [navigationInput, setNavigationInput] = useState("")
+  const [navigationLoading, setNavigationLoading] = useState(false)
+
+
   const handleExplainText = async (text: string) => {
     console.log("handleExplainText started with:", text);
     try {
@@ -197,6 +204,25 @@ function App() {
       setReadingListMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setAddingToReadingList(false);
+    }
+  }
+  const handleNavigationCommand = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!navigationInput.trim()) return
+
+    try {
+      setNavigationLoading(true)
+      const success = await handleNavigation(navigationInput)
+      if (!success) {
+        // Optionally show some feedback that the command wasn't understood
+        console.log("Navigation command not understood")
+      }
+      // Clear the input on success
+      setNavigationInput("")
+    } catch (error) {
+      console.error('Navigation error:', error)
+    } finally {
+      setNavigationLoading(false)
     }
   }
 
@@ -424,7 +450,6 @@ function App() {
       </div>
 
       {/* add to reading list  */}
-      
       <div className="border-t pt-4">
         <button
           onClick={handleAddToReadingList}
@@ -450,7 +475,26 @@ function App() {
         )}
       </div>
 
-
+      {/*navigation section */}
+      <div className="border-b pb-4">
+        <form onSubmit={handleNavigationCommand} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={navigationInput}
+            onChange={(e) => setNavigationInput(e.target.value)}
+            placeholder="Type a navigation command (e.g., 'open settings', 'watch cat videos')"
+            className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={navigationLoading}
+          />
+          <button
+            type="submit"
+            className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:bg-gray-400"
+            disabled={navigationLoading}
+          >
+            {navigationLoading ? 'Processing...' : 'Navigate'}
+          </button>
+        </form>
+      </div>
 
 
       {/* tts section */}
