@@ -8,7 +8,11 @@ import { AudioControls } from './components/AudioControls';
 import { searchTabsWithAI } from './utils/tabs';
 import { searchHistoryWithAI, clearHistory, type HistoryClearOption } from './utils/history'
 import { addToReadingList } from './utils/readingList';
-import { handleNavigation } from './utils/navigation'  
+import { handleNavigation } from './utils/navigation'
+import { reopenLastClosedTab } from './utils/miscellaneous';
+import { toggleBionicReading } from './utils/miscellaneous';
+
+
 
 
 type SupportedLanguage = {
@@ -40,11 +44,9 @@ function App() {
   const [tabResults, setTabResults] = useState("")
   const [tabLoading, setTabLoading] = useState(false)
   const [textToRead, setTextToRead] = useState<string | null>(null);
-
   const [bookmarkQuery, setBookmarkQuery] = useState("")
   const [bookmarkResults, setBookmarkResults] = useState("")
   const [bookmarkLoading, setBookmarkLoading] = useState(false)
-
   const [historyQuery, setHistoryQuery] = useState("")
   const [historyResults, setHistoryResults] = useState("")
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -52,9 +54,12 @@ function App() {
   const [clearHistoryMessage, setClearHistoryMessage] = useState("");
   const [addingToReadingList, setAddingToReadingList] = useState(false);
   const [readingListMessage, setReadingListMessage] = useState("");
-
   const [navigationInput, setNavigationInput] = useState("")
   const [navigationLoading, setNavigationLoading] = useState(false)
+  const [reopeningTab, setReopeningTab] = useState(false);
+  const [bionicReadingEnabled, setBionicReadingEnabled] = useState(false);
+  const [toggling, setToggling] = useState(false);
+
 
 
   const handleExplainText = async (text: string) => {
@@ -101,6 +106,9 @@ function App() {
         );
 
       }
+    });
+    chrome.storage.local.get('bionicReadingEnabled').then(({ bionicReadingEnabled }) => {
+      setBionicReadingEnabled(!!bionicReadingEnabled);
     });
   }, []);
 
@@ -225,6 +233,34 @@ function App() {
       setNavigationLoading(false)
     }
   }
+  const handleReopenLastTab = async () => {
+    try {
+      setReopeningTab(true);
+      const success = await reopenLastClosedTab();
+      if (!success) {
+        // Optionally show a message that there's no tab to reopen
+        console.log("No recently closed tabs found");
+      }
+    } catch (error) {
+      console.error('Error reopening tab:', error);
+    } finally {
+      setReopeningTab(false);
+    }
+  };
+  const handleToggleBionicReading = async () => {
+    try {
+      setToggling(true);
+      const success = await toggleBionicReading(!bionicReadingEnabled);
+      if (success) {
+        setBionicReadingEnabled(!bionicReadingEnabled);
+      }
+    } catch (error) {
+      console.error('Error toggling bionic reading:', error);
+    } finally {
+      setToggling(false);
+    }
+  };
+
 
   return (
     <div className="w-96 min-h-[200px] p-4 flex flex-col gap-4">
@@ -496,8 +532,53 @@ function App() {
         </form>
       </div>
 
+      {/* reopen last tab */}
+      <div className="border-t pt-4">
+        <button
+          onClick={handleReopenLastTab}
+          disabled={reopeningTab}
+          className="w-full bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-400 flex items-center justify-center gap-2"
+        >
+          {reopeningTab ? (
+            <>
+              <span className="animate-spin">↻</span>
+              Reopening Last Tab...
+            </>
+          ) : (
+            <>
+              <span>↩️</span>
+              Reopen Last Closed Tab
+            </>
+          )}
+        </button>
+      </div>
 
-      {/* tts section */}
+      {/* Bionic Reading */}
+      <div className="border-t pt-4">
+        <button
+          onClick={handleToggleBionicReading}
+          disabled={toggling}
+          className={`w-full px-4 py-2 rounded flex items-center justify-center gap-2 
+      ${bionicReadingEnabled
+              ? 'bg-green-500 hover:bg-green-600'
+              : 'bg-blue-500 hover:bg-blue-600'} 
+      text-white disabled:bg-gray-400`}
+        >
+          {toggling ? (
+            <>
+              <span className="animate-spin">↻</span>
+              Updating Bionic Reading...
+            </>
+          ) : (
+            <>
+              <span>👀</span>
+              {bionicReadingEnabled ? 'Disable Bionic Reading' : 'Enable Bionic Reading'}
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* tts section bottom*/}
       {textToRead && (
         <AudioControls
           text={textToRead}

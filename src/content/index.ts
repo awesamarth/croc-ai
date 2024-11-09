@@ -2,6 +2,7 @@
 import { initializeTTS } from '../utils/tts';
 import { initializeSummarize } from './summarize';
 import { initializeTranslate } from './translate';
+import { initializeBionicReading } from './bionicreading';
 
 console.log("Content script loaded"); // Add this for debugging
 
@@ -9,3 +10,4 @@ console.log("Content script loaded"); // Add this for debugging
 initializeSummarize();
 initializeTTS();
 initializeTranslate();
+initializeBionicReading();
