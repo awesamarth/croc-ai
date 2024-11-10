@@ -9,8 +9,8 @@ import { searchTabsWithAI } from './utils/tabs';
 import { searchHistoryWithAI, clearHistory, type HistoryClearOption } from './utils/history'
 import { addToReadingList } from './utils/readingList';
 import { handleNavigation } from './utils/navigation'
-import { reopenLastClosedTab } from './utils/miscellaneous';
-import { toggleBionicReading } from './utils/miscellaneous';
+import { reopenLastClosedTab, toggleBionicReading } from './utils/miscellaneous';
+
 
 
 
@@ -59,6 +59,8 @@ function App() {
   const [reopeningTab, setReopeningTab] = useState(false);
   const [bionicReadingEnabled, setBionicReadingEnabled] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [highContrastEnabled, setHighContrastEnabled] = useState(false);
+  const [togglingContrast, setTogglingContrast] = useState(false);
 
 
 
@@ -110,6 +112,11 @@ function App() {
     chrome.storage.local.get('bionicReadingEnabled').then(({ bionicReadingEnabled }) => {
       setBionicReadingEnabled(!!bionicReadingEnabled);
     });
+    chrome.storage.local.get('highContrastEnabled', ({ highContrastEnabled }) => {
+      setHighContrastEnabled(!!highContrastEnabled);
+    });
+
+
   }, []);
 
 
@@ -260,6 +267,36 @@ function App() {
       setToggling(false);
     }
   };
+  const handleToggleHighContrast = async () => {
+    try {
+      setTogglingContrast(true);
+
+      // Get all tabs
+      const tabs = await chrome.tabs.query({});
+
+      // Send message to all tabs except chrome:// urls
+      await Promise.all(tabs.map(async (tab) => {
+        if (tab.id && !tab.url?.startsWith('chrome://')) {
+          await chrome.tabs.sendMessage(tab.id, {
+            type: 'toggleHighContrast',
+            enable: !highContrastEnabled
+          });
+        }
+      }));
+
+      // Update storage
+      await chrome.storage.local.set({
+        highContrastEnabled: !highContrastEnabled
+      });
+
+      setHighContrastEnabled(!highContrastEnabled);
+    } catch (error) {
+      console.error('Error toggling high contrast:', error);
+    } finally {
+      setTogglingContrast(false);
+    }
+  };
+
 
 
   return (
@@ -577,6 +614,32 @@ function App() {
           )}
         </button>
       </div>
+
+      {/* high contrast theme */}
+      <div className="border-t pt-4">
+        <button
+          onClick={handleToggleHighContrast}
+          disabled={togglingContrast}
+          className={`w-full px-4 py-2 rounded flex items-center justify-center gap-2 
+      ${highContrastEnabled
+              ? 'bg-green-500 hover:bg-green-600'
+              : 'bg-blue-500 hover:bg-blue-600'} 
+      text-white disabled:bg-gray-400`}
+        >
+          {togglingContrast ? (
+            <>
+              <span className="animate-spin">↻</span>
+              Updating High Contrast...
+            </>
+          ) : (
+            <>
+              <span>🎨</span>
+              {highContrastEnabled ? 'Disable High Contrast' : 'Enable High Contrast'}
+            </>
+          )}
+        </button>
+      </div>
+
 
       {/* tts section bottom*/}
       {textToRead && (
