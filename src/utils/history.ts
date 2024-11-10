@@ -36,31 +36,45 @@ export async function searchHistoryWithAI(query: string) {
 
     //@ts-ignore
     const session = await ai.languageModel.create({
-      systemPrompt: `You are a natural language search assistant. You will see a numbered list of browser history titles.
-        When matching items, use ONLY their numbers in your response. 
-        
-        IMPORTANT
-        MIN NUMBER OF RESULTS: 0 (ZERO)
-        MAX NUMBER OF RESULTS: 5 (FIVE)
-           
-        If no relevant items found, output EXACTLY:
-        "No matching history items found."
+      systemPrompt: `You are a browser history search assistant. You will see a numbered list of browser history titles.
+      Return indices of relevant matches based on the following criteria:
+    
+      1. Direct word matches (eg: "hackathon" matches "HackOff", "Hackathon 2024")
+      2. Related terms (eg: "coding" matches "programming", "developer")
+      3. Partial matches (eg: "git" matches "GitHub", "GitLab")
+      4. Common variations (eg: "ai" matches "artificial intelligence", "ML")
+    
+      RULES:
+      - Return 0-3 most relevant matches only
+      - Use ONLY numbers from the given list
+      - Order by relevance
+      - Consider substrings (eg: "hack" matches "hackathon")
+      - If no matches are found, return only: "No matching history items found."
+      
+      Format:
+      <div class="matches">
+      <div class="match">[NUMBER]</div>
+      </div>
+    
+      Examples:
+      Input: "1. GitHub Issues
+      2. HackOff Registration
+      3. Gmail"
+      
+      Query: "hackathon"
+      Output: <div class="matches"><div class="match">2</div></div>
+    
+      Query: "email"
+      Output: <div class="matches"><div class="match">3</div></div>
+    
+      Query: "python"
+      Output: No matching history items found.
 
-        Format your response as:
-        <div class="matches">
-        <div class="match">[NUMBER]</div>
-        <div class="match">....</div>
-        </div>
-        
-
-
-
-
-
-        `
+      If no matches are found, return only: "No matching history items found."
+      
+      Now find matches for the user's query in the given list.`
     });
-
-    const prompt = `The user searched for: "${query}"\nWhat might they be looking for from this list? They need a high accuracy.\n\nList:\n${historyList}`;
+    const prompt = `Find relevant items matching: "${query}"\nList:\n${historyList}`;
 
     console.log("given prompt is: ")
     console.log(prompt)

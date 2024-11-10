@@ -10,6 +10,7 @@ import { searchHistoryWithAI, clearHistory, type HistoryClearOption } from './ut
 import { addToReadingList } from './utils/readingList';
 import { handleNavigation } from './utils/navigation'
 import { adjustFontSize, reopenLastClosedTab, resetFontSize, toggleBionicReading } from './utils/miscellaneous';
+import { createReminder, getReminders, deleteReminder, type Reminder } from './utils/reminders';
 
 
 
@@ -62,6 +63,11 @@ function App() {
   const [highContrastEnabled, setHighContrastEnabled] = useState(false);
   const [togglingContrast, setTogglingContrast] = useState(false);
   const [adjustingFontSize, setAdjustingFontSize] = useState(false);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [reminderContent, setReminderContent] = useState('');
+  const [reminderDate, setReminderDate] = useState('');
+  const [reminderTime, setReminderTime] = useState('');
+  const [creatingReminder, setCreatingReminder] = useState(false);
 
 
   const handleExplainText = async (text: string) => {
@@ -115,6 +121,11 @@ function App() {
     chrome.storage.local.get('highContrastEnabled', ({ highContrastEnabled }) => {
       setHighContrastEnabled(!!highContrastEnabled);
     });
+    const loadReminders = async () => {
+      const existingReminders = await getReminders();
+      setReminders(existingReminders);
+    };
+    loadReminders();
 
   }, []);
 
@@ -328,7 +339,35 @@ function App() {
       setAdjustingFontSize(false);
     }
   };
+  const handleCreateReminder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setCreatingReminder(true);
+      const success = await createReminder(reminderContent, reminderDate, reminderTime);
 
+      if (success) {
+        // Clear form
+        setReminderContent('');
+        setReminderDate('');
+        setReminderTime('');
+
+        // Refresh reminders list
+        const updatedReminders = await getReminders();
+        setReminders(updatedReminders);
+      }
+    } catch (error) {
+      console.error('Error creating reminder:', error);
+    } finally {
+      setCreatingReminder(false);
+    }
+  };
+
+  const handleDeleteReminder = async (id: string) => {
+    const success = await deleteReminder(id);
+    if (success) {
+      setReminders(reminders.filter(r => r.id !== id));
+    }
+  };
 
 
   return (
@@ -696,6 +735,77 @@ function App() {
           >
             A+
           </button>
+        </div>
+      </div>
+
+      {/* Reminders */}
+      <div className="border-t pt-4 mt-4">
+        <h3 className="font-semibold mb-2">Reminders</h3>
+
+        <form onSubmit={handleCreateReminder} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={reminderContent}
+            onChange={(e) => setReminderContent(e.target.value)}
+            placeholder="What do you want to be reminded about?"
+            className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={reminderDate}
+              onChange={(e) => setReminderDate(e.target.value)}
+              className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <input
+              type="time"
+              value={reminderTime}
+              onChange={(e) => setReminderTime(e.target.value)}
+              className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={creatingReminder}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+          >
+            {creatingReminder ? 'Creating...' : 'Set Reminder'}
+          </button>
+        </form>
+
+        {/* List of reminders */}
+        <div className="mt-4">
+          {reminders.length === 0 ? (
+            <p className="text-gray-500 text-center">No reminders set</p>
+          ) : (
+            <div className="space-y-2">
+              {reminders.map(reminder => (
+                <div
+                  key={reminder.id}
+                  className={`p-3 rounded-lg border flex justify-between items-center
+              ${reminder.notified ? 'bg-gray-100' : 'bg-white'}`}
+                >
+                  <div>
+                    <p className="font-medium">{reminder.content}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(reminder.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteReminder(reminder.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

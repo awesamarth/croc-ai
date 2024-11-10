@@ -1,5 +1,3 @@
-// src/utils/miscellaneous.ts
-
 export async function reopenLastClosedTab(): Promise<boolean> {
   try {
     // Get all recently closed sessions

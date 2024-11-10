@@ -16,7 +16,9 @@
     "sessions",
     "history",
     "readingList",
-    "fontSettings"
+    "fontSettings",
+    "alarms",
+    "notifications"
   ],
 
   "host_permissions": [
