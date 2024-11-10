@@ -15,7 +15,8 @@
     "clipboardWrite",
     "sessions",
     "history",
-    "readingList"
+    "readingList",
+    "fontSettings"
   ],
 
   "host_permissions": [

@@ -64,3 +64,36 @@ export async function toggleBionicReading(enable: boolean): Promise<boolean> {
     return false;
   }
 }
+
+export async function adjustFontSize(increase: boolean): Promise<boolean> {
+  try {
+    // Get current default font size
+    const { pixelSize } = await chrome.fontSettings.getDefaultFontSize();
+    
+    // Calculate new size (increase/decrease by 2 pixels)
+    const newSize = increase ? pixelSize + 1 : pixelSize - 1;
+    
+    // Clamp between 6 and 72 pixels (Chrome's limits)
+    const clampedSize = Math.min(Math.max(newSize, 6), 72);
+    
+    // Set the new default font size
+    await chrome.fontSettings.setDefaultFontSize({ pixelSize: clampedSize });
+    
+    return true;
+  } catch (error) {
+    console.error('Error adjusting font size:', error);
+    return false;
+  }
+}
+
+export async function resetFontSize(): Promise<boolean> {
+  try {
+    // Chrome's default is typically 16px
+    await chrome.fontSettings.setDefaultFontSize({ pixelSize: 16 });
+    return true;
+  } catch (error) {
+    console.error('Error resetting font size:', error);
+    return false;
+  }
+}
+

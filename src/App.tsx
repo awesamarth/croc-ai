@@ -9,7 +9,7 @@ import { searchTabsWithAI } from './utils/tabs';
 import { searchHistoryWithAI, clearHistory, type HistoryClearOption } from './utils/history'
 import { addToReadingList } from './utils/readingList';
 import { handleNavigation } from './utils/navigation'
-import { reopenLastClosedTab, toggleBionicReading } from './utils/miscellaneous';
+import { adjustFontSize, reopenLastClosedTab, resetFontSize, toggleBionicReading } from './utils/miscellaneous';
 
 
 
@@ -61,7 +61,7 @@ function App() {
   const [toggling, setToggling] = useState(false);
   const [highContrastEnabled, setHighContrastEnabled] = useState(false);
   const [togglingContrast, setTogglingContrast] = useState(false);
-
+  const [adjustingFontSize, setAdjustingFontSize] = useState(false);
 
 
   const handleExplainText = async (text: string) => {
@@ -115,7 +115,6 @@ function App() {
     chrome.storage.local.get('highContrastEnabled', ({ highContrastEnabled }) => {
       setHighContrastEnabled(!!highContrastEnabled);
     });
-
 
   }, []);
 
@@ -294,6 +293,39 @@ function App() {
       console.error('Error toggling high contrast:', error);
     } finally {
       setTogglingContrast(false);
+    }
+  };
+  const handleIncreaseFontSize = async () => {
+    try {
+      setAdjustingFontSize(true);
+      await adjustFontSize(true);
+    } catch (error) {
+      console.error('Error increasing font size:', error);
+    } finally {
+      setAdjustingFontSize(false);
+    }
+  };
+
+  const handleDecreaseFontSize = async () => {
+    try {
+      setAdjustingFontSize(true);
+      await adjustFontSize(false);
+    } catch (error) {
+      console.error('Error decreasing font size:', error);
+    } finally {
+      setAdjustingFontSize(false);
+    }
+  };
+
+  // Optional: Reset handler
+  const handleResetFontSize = async () => {
+    try {
+      setAdjustingFontSize(true);
+      await resetFontSize();
+    } catch (error) {
+      console.error('Error resetting font size:', error);
+    } finally {
+      setAdjustingFontSize(false);
     }
   };
 
@@ -640,6 +672,32 @@ function App() {
         </button>
       </div>
 
+      {/* Font size adjustment */}
+      <div className="border-t pt-4">
+        <div className="flex justify-between gap-2">
+          <button
+            onClick={handleDecreaseFontSize}
+            disabled={adjustingFontSize}
+            className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+          >
+            A-
+          </button>
+          <button
+            onClick={handleResetFontSize}
+            disabled={adjustingFontSize}
+            className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-400"
+          >
+            Reset
+          </button>
+          <button
+            onClick={handleIncreaseFontSize}
+            disabled={adjustingFontSize}
+            className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+          >
+            A+
+          </button>
+        </div>
+      </div>
 
       {/* tts section bottom*/}
       {textToRead && (
