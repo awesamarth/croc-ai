@@ -4,6 +4,8 @@ import { initializeSummarize } from './summarize';
 import { initializeTranslate } from './translate';
 import { initializeBionicReading } from './bionicreading';
 import { initializeHighContrast } from './highcontrast';
+import { initializeWriter } from './writer';
+
 
 console.log("Content script loaded"); // Add this for debugging
 
@@ -13,3 +15,4 @@ initializeTTS();
 initializeTranslate();
 initializeBionicReading();
 initializeHighContrast();
+initializeWriter();  

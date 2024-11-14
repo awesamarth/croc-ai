@@ -23,6 +23,12 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "Read text aloud",
     contexts: ["selection"]
   });
+
+chrome.contextMenus.create({
+  id: "crocWriter",
+  title: "Croc Writer",
+  contexts: ["editable"]
+});
 });
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -95,6 +101,24 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       console.error('Error injecting content script:', error);
     }
   }
+  else if (info.menuItemId === "crocWriter" && tab?.id) {
+    try {
+      // First ensure the content script is injected, like we do for readText
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => true
+      });
+      
+      // Send message to content script
+      await chrome.tabs.sendMessage(tab.id, {
+        type: 'showWriter',
+        //@ts-ignore
+        x: info.x as number || 0,
+        //@ts-ignore
+        y: info.y as number || 0
+      });
+    } catch (error) {
+      console.error('Error showing writer:', error);
+    }
+  }
 });
-
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });

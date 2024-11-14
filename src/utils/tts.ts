@@ -93,7 +93,6 @@ export function createAudioControls(textToSpeak: string) {
   export function initializeTTS() {
     console.log('TTS initialized');
     chrome.runtime.onMessage.addListener((message) => {
-      console.log('TTS received message:', message);
       if (message.type === 'readAloud' && message.text) {
         console.log('Creating audio controls for:', message.text);
         createAudioControls(message.text);
