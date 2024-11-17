@@ -18,7 +18,8 @@
     "readingList",
     "fontSettings",
     "alarms",
-    "notifications"
+    "notifications",
+    "webNavigation"
   ],
 
   "host_permissions": [

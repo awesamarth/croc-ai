@@ -39,8 +39,57 @@ function processTextNode(node: Text) {
 
   node.parentNode!.replaceChild(span, node);
 }
+function handlePDFViewer() {
+  // First, we need to wait for the PDF to fully render
+  const observer = new MutationObserver((_mutations, obs) => {
+    const pdfContainer = document.querySelector('.pdf-viewer');
+    if (!pdfContainer) return;
 
+    // Look for text layers
+    const textLayers = document.querySelectorAll('.textLayer');
+    if (textLayers.length > 0) {
+      textLayers.forEach(layer => {
+        // Process each text span in the PDF
+        const spans = layer.querySelectorAll('span');
+        spans.forEach(span => {
+          if (span.textContent?.trim()) {
+            const { bold, rest } = bionicifyWord(span.textContent);
+            span.innerHTML = `<strong>${bold}</strong>${rest}`;
+          }
+        });
+      });
+
+      // Optional: Disconnect observer after processing
+      obs.disconnect();
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
+function injectPDFStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .textLayer {
+      opacity: 1 !important;
+    }
+    .textLayer strong {
+      color: inherit !important;
+      font-weight: 700 !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
 function walkTextNodes(element: Node) {
+
+  if (document.body.classList.contains('pdf-viewer')) {
+    handlePDFViewer();
+    return;
+  }
+
   // Skip if element is an input, textarea, or other form elements
   if (
     element.nodeType === Node.ELEMENT_NODE && 
@@ -117,17 +166,33 @@ function revertBionicReading() {
     }
   });
 }
+
+
 export function toggleBionicReading(enable: boolean) {
   console.log('Toggle received in content script:', enable);
+  
+  // Add PDF-specific check
+  const isPDF = document.body.classList.contains('pdf-viewer');
+  if (isPDF) {
+    if (enable) {
+      injectPDFStyles();
+      handlePDFViewer();
+    } else {
+      // Reload the PDF viewer to reset it
+      location.reload();
+    }
+    return;
+  }
+
+  // Regular webpage handling
   if (enable) {
     console.log('Applying bionic reading');
-    applyBionicReading();
+    applyBionicReading();  // Changed this line from walkTextNodes()
   } else {
     console.log('Removing bionic reading');
     revertBionicReading();
   }
 }
-
 export function initializeBionicReading() {
   chrome.storage.local.get('bionicReadingEnabled', ({ bionicReadingEnabled }) => {
     if (bionicReadingEnabled) {
