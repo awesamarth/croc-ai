@@ -154,6 +154,35 @@ interface FunctionParameter {
         "remind me to call mom in 30 minutes"
       ],
       handler: "createReminder"
+    },
+    {
+      name: "adjustFontSize", 
+      description: "Increase or decrease browser font size",
+      parameters: [
+        {
+          name: "increase",
+          type: "boolean", 
+          description: "true to increase, false to decrease",
+          required: true
+        }
+      ],
+      examples: [
+        "increase font size",
+        "make text bigger", 
+        "decrease font size",
+        "make text smaller"
+      ],
+      handler: "adjustFontSize"
+    },
+    {
+      name: "resetFontSize",
+      description: "Reset font size to default",
+      parameters: [],
+      examples: [
+        "reset font size",
+        "restore default text size"
+      ],
+      handler: "resetFontSize"
     }
   ];
   

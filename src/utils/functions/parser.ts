@@ -8,6 +8,8 @@ import { addToReadingList } from '../readingList';
 import { reopenLastClosedTab } from '../miscellaneous';
 import { functionRegistry } from './registry';
 import { createReminder } from '../reminders';
+import { adjustFontSize, resetFontSize } from '../miscellaneous';
+
 
 
 interface ParsedFunction {
@@ -24,7 +26,9 @@ const functionHandlers: Record<string, Function> = {
     addToReadingList: addToReadingList,
     reopenLastTab: reopenLastClosedTab,
     clearHistory: clearHistory,
-    createReminder: createReminder
+    createReminder: createReminder,
+    adjustFontSize:adjustFontSize,
+    resetFontSize:resetFontSize,
 
 };
 
