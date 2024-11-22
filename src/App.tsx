@@ -416,7 +416,7 @@ function App() {
         <div className="flex items-center justify-center pb-2 border-b border-gray-700">
           <div className="flex items-center gap-3">
             <img src={crocLogo} alt="Croc AI" className="w-16 h-16" />
-            <h1 className="text-2xl font-semibold bg-gradient-to-r from-[#4285F4] via-[#EA4335] to-[#FBBC05] bg-clip-text text-transparent">
+            <h1 className="text-4xl font-semibold bg-gradient-to-r from-[#4285F4] via-[#EA4335] to-[#FBBC05] bg-clip-text text-transparent">
               Croc AI
             </h1>
           </div>
@@ -501,35 +501,137 @@ function App() {
           </div>
         )}
 
-            {/*auto translate section*/}
-            <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-200 text-sm font-medium">Auto-translate</span>
-                <span className="text-gray-200 text-sm">to</span>
-                <select
-                  className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
-                  value={targetLanguage}
-                  onChange={(e) => setTargetLanguage(e.target.value)}
-                  disabled={!autoTranslateEnabled}
-                >
-                  {SUPPORTED_LANGUAGES.map(lang => (
-                    <option key={lang.code} value={lang.code} className="bg-gray-700">
-                      {lang.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={autoTranslateEnabled}
-                  onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
-                />
-                <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90">
-                </div>
-              </label>
+        {/*auto translate section*/}
+        <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-200 text-sm font-medium">Auto-translate pages</span>
+            <span className="text-gray-200 text-sm">to</span>
+            <select
+              className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
+              value={targetLanguage}
+              onChange={(e) => setTargetLanguage(e.target.value)}
+              disabled={!autoTranslateEnabled}
+            >
+              {SUPPORTED_LANGUAGES.map(lang => (
+                <option key={lang.code} value={lang.code} className="bg-gray-700">
+                  {lang.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={autoTranslateEnabled}
+              onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
+            />
+            <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90">
             </div>
+          </label>
+        </div>
+
+
+        {/* grid with 4 options */}
+        <div className="pt-2">
+          <div className="grid grid-cols-2 gap-3 max-w-[350px] mx-auto">
+            {/* ezRead Mode */}
+            <button
+              onClick={handleToggleBionicReading}
+              disabled={toggling}
+              className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+    ${bionicReadingEnabled
+                  ? 'bg-[#34A853] hover:bg-[#2E8B47]'
+                  : 'bg-[#6752e0] hover:bg-[#5443b5]'}
+    text-white disabled:bg-gray-400 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.1)] `}
+            >
+              {toggling ? (
+                <>
+                  <span className="animate-spin text-lg">↻</span>
+                  <span className="text-xs">Updating...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">👀</span>
+                  <span className="text-xs font-medium">
+                    {bionicReadingEnabled ? 'Disable ez-Read' : 'Enable ez-Read'}
+                  </span>
+                </>
+              )}
+            </button>
+
+            {/* High Contrast */}
+            <button
+              onClick={handleToggleHighContrast}
+              disabled={togglingContrast}
+              className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+        ${highContrastEnabled
+                  ? 'bg-[#34A853] hover:bg-[#2E8B47]'
+                  : 'bg-[#6752e0] hover:bg-[#5443b5]'}
+        text-white disabled:bg-gray-400 transition-colors
+        border border-[#4285f4]/20 shadow-lg`}
+            >
+              {togglingContrast ? (
+                <>
+                  <span className="animate-spin text-lg">↻</span>
+                  <span className="text-xs">Updating...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">🎨</span>
+                  <span className="text-xs font-medium">
+                    {highContrastEnabled ? 'Disable Contrast' : 'High Contrast'}
+                  </span>
+                </>
+              )}
+            </button>
+
+            {/* Screenshot */}
+            <button
+              onClick={handleScreenshot}
+              disabled={takingScreenshot}
+              className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+        bg-[#6752e0] hover:bg-[#5443b5]
+        text-white disabled:bg-gray-400 transition-colors
+        border border-[#4285f4]/20 shadow-lg`}
+            >
+              {takingScreenshot ? (
+                <>
+                  <span className="animate-spin text-lg">↻</span>
+                  <span className="text-xs">Capturing...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">📸</span>
+                  <span className="text-xs font-medium">Screenshot</span>
+                </>
+              )}
+            </button>
+
+            {/* Reopen Last Tab */}
+            <button
+              onClick={handleReopenLastTab}
+              disabled={reopeningTab}
+              className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+        bg-[#6752e0] hover:bg-[#5443b5]
+        text-white disabled:bg-gray-400 transition-colors
+        border border-[#4285f4]/20 shadow-lg`}
+            >
+              {reopeningTab ? (
+                <>
+                  <span className="animate-spin text-lg">↻</span>
+                  <span className="text-xs">Reopening...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xl">↩️</span>
+                  <span className="text-xs font-medium">Reopen Last Tab</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
 
         {/* switch to manual controls */}
         <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
@@ -561,62 +663,7 @@ function App() {
 
 
 
-        <div className="border-t pt-4">
-          <div className="flex flex-col gap-4">
 
-
-            {/* ezRead Mode */}
-            <div className="border-t pt-4">
-              <button
-                onClick={handleToggleBionicReading}
-                disabled={toggling}
-                className={`w-full px-4 py-2 rounded flex items-center justify-center gap-2 
-                  ${bionicReadingEnabled
-                    ? 'bg-green-500 hover:bg-green-600'
-                    : 'bg-blue-500 hover:bg-blue-600'} 
-                        text-white disabled:bg-gray-400`}
-              >
-                {toggling ? (
-                  <>
-                    <span className="animate-spin">↻</span>
-                    Updating ezRead Mode...
-                  </>
-                ) : (
-                  <>
-                    <span>👀</span>
-                    {bionicReadingEnabled ? 'Disable ez-Read' : 'Enable ez-Read'}
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* high contrast theme */}
-            <div className="border-t pt-4">
-              <button
-                onClick={handleToggleHighContrast}
-                disabled={togglingContrast}
-                className={`w-full px-4 py-2 rounded flex items-center justify-center gap-2 
-      ${highContrastEnabled
-                    ? 'bg-green-500 hover:bg-green-600'
-                    : 'bg-blue-500 hover:bg-blue-600'} 
-      text-white disabled:bg-gray-400`}
-              >
-                {togglingContrast ? (
-                  <>
-                    <span className="animate-spin">↻</span>
-                    Updating High Contrast...
-                  </>
-                ) : (
-                  <>
-                    <span>🎨</span>
-                    {highContrastEnabled ? 'Disable High Contrast' : 'Enable High Contrast'}
-                  </>
-                )}
-              </button>
-            </div>
-
-          </div>
-        </div>
 
 
         {showManualControls && (
