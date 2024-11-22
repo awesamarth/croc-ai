@@ -132,7 +132,7 @@ export async function executeCommand(parsed: ParsedFunction): Promise<string> {
 
         console.log("result is here")
         console.log(result)
-        if (result){
+        if (result===true){
             return "done!";
 
         }
@@ -144,10 +144,3 @@ export async function executeCommand(parsed: ParsedFunction): Promise<string> {
         throw error;
     }
 }
-
-// Example usage:
-// const parsed = await parseCommand("find my bookmarks about recipes");
-// if (parsed && parsed.confidence > 0.7) {
-//   const result = await executeCommand(parsed);
-//   console.log(result);
-// }

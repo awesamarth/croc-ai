@@ -63,7 +63,7 @@ export async function toggleBionicReading(enable: boolean): Promise<boolean> {
   }
 }
 
-export async function adjustFontSize(increase: boolean): Promise<boolean> {
+export  async function adjustFontSize(increase: boolean): Promise<boolean> {
   try {
     // Get current default font size
     const { pixelSize } = await chrome.fontSettings.getDefaultFontSize();
