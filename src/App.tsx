@@ -279,6 +279,8 @@ function App() {
       setToggling(false);
     }
   };
+
+
   //@ts-ignore
   const handleToggleHighContrast = async () => {
     try {
@@ -309,6 +311,9 @@ function App() {
       setTogglingContrast(false);
     }
   };
+
+
+
   const handleIncreaseFontSize = async () => {
     try {
       setAdjustingFontSize(true);
@@ -331,7 +336,6 @@ function App() {
     }
   };
 
-  // Optional: Reset handler
   const handleResetFontSize = async () => {
     try {
       setAdjustingFontSize(true);
@@ -713,6 +717,8 @@ function App() {
                 </button>
               </form>
             </div>
+
+
             {/* Bookmark search section */}
             <div className="border-t  border-gray-700 pt-2 mt-4">
               <div className='text-lg font-bold mb-2'>Bookmarks</div>
@@ -723,13 +729,13 @@ function App() {
                   onChange={(e) => setBookmarkQuery(e.target.value)}
                   placeholder="Search your bookmarks..."
                   className="p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
-                 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] 
+                 focus:outline-none focus:ring-2 focus:ring-[#6752e0] focus:border-[#5443b5] 
                  placeholder-gray-400"
                   disabled={bookmarkLoading}
                 />
                 <button
                   type="submit"
-                  className="bg-[#4285F4] text-white px-4 py-2 rounded-lg hover:bg-[#4285F4]/90 
+                  className=" text-white px-4 py-2 rounded-lg bg-[#6752e0] hover:bg-[#5443b5] 
                  disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                   disabled={bookmarkLoading}
                 >
@@ -817,13 +823,13 @@ function App() {
                   onChange={(e) => setHistoryQuery(e.target.value)}
                   placeholder="Search your history..."
                   className="p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] 
+                focus:outline-none focus:ring-2 focus:ring-[#6752e0] focus:border-[#5443b5] 
                 placeholder-gray-400"
                   disabled={historyLoading}
                 />
                 <button
                   type="submit"
-                  className="bg-[#4285F4] text-white px-4 py-2 rounded-lg hover:bg-[#4285F4]/90 
+                  className="text-white px-4 py-2 rounded-lg bg-[#6752e0] hover:bg-[#5443b5] 
                 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                   disabled={historyLoading}
                 >
@@ -915,8 +921,8 @@ function App() {
                 <button
                   onClick={handleDecreaseFontSize}
                   disabled={adjustingFontSize}
-                  className="flex-1 bg-[#4285F4] text-white px-4 py-3 rounded-lg 
-                hover:bg-[#4285F4]/90
+                  className="flex-1  text-white px-4 py-3 rounded-lg 
+                bg-[#6752e0] hover:bg-[#5443b5] 
                 disabled:bg-gray-600 disabled:cursor-not-allowed 
                 transition-colors
                 flex items-center justify-center"
@@ -937,8 +943,8 @@ function App() {
                 <button
                   onClick={handleIncreaseFontSize}
                   disabled={adjustingFontSize}
-                  className="flex-1 bg-[#4285F4] text-white px-4 py-3 rounded-lg 
-                hover:bg-[#4285F4]/90
+                  className="flex-1  text-white px-4 py-3 rounded-lg 
+                bg-[#6752e0] hover:bg-[#5443b5] 
                 disabled:bg-gray-600 disabled:cursor-not-allowed 
                 transition-colors
                 flex items-center justify-center"

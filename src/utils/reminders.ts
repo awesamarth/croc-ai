@@ -168,7 +168,7 @@ export interface Reminder {
         // Show notification
         chrome.notifications.create(`notification_${reminder.id}`, {
           type: 'basic',
-          iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          iconUrl: chrome.runtime.getURL('icons/croc128.png'), // using 128px version as it's a good size for notifications
           title: 'Reminder',
           message: reminder.content,
           buttons: [{ title: 'Dismiss' }],
