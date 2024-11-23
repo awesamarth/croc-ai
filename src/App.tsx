@@ -63,6 +63,7 @@ function App() {
   const [bionicReadingEnabled, setBionicReadingEnabled] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [highContrastEnabled, setHighContrastEnabled] = useState(false);
+  //@ts-ignore
   const [togglingContrast, setTogglingContrast] = useState(false);
   const [adjustingFontSize, setAdjustingFontSize] = useState(false);
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -170,17 +171,12 @@ function App() {
     try {
       setTakingScreenshot(true);
       await captureAndSaveScreenshot();
-
-      // Show "Copied!" message
       setShowCopiedMessage(true);
-
-      // Hide message after 2 seconds
       setTimeout(() => {
         setShowCopiedMessage(false);
       }, 2000);
-
     } catch (error) {
-      console.error('Screenshot error in component:', error);
+      console.error('Screenshot error:', error);
       alert(`Failed to take screenshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setTakingScreenshot(false);
@@ -283,6 +279,7 @@ function App() {
       setToggling(false);
     }
   };
+  //@ts-ignore
   const handleToggleHighContrast = async () => {
     try {
       setTogglingContrast(true);
@@ -396,6 +393,13 @@ function App() {
       console.log(result)
       setCommandResult(result);
       setCommand(''); // Clear input on success
+
+      // Add timeout to clear the result after 2 seconds if it's "done!"
+      if (result === "done!") {
+        setTimeout(() => {
+          setCommandResult(null);
+        }, 2000);
+      }
 
     } catch (error) {
       console.error('Command execution error:', error);
@@ -535,6 +539,8 @@ function App() {
         {/* grid with 4 options */}
         <div className="pt-2">
           <div className="grid grid-cols-2 gap-3 max-w-[350px] mx-auto">
+
+
             {/* ezRead Mode */}
             <button
               onClick={handleToggleBionicReading}
@@ -560,53 +566,69 @@ function App() {
               )}
             </button>
 
-            {/* High Contrast */}
-            <button
-              onClick={handleToggleHighContrast}
-              disabled={togglingContrast}
-              className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
-        ${highContrastEnabled
-                  ? 'bg-[#34A853] hover:bg-[#2E8B47]'
-                  : 'bg-[#6752e0] hover:bg-[#5443b5]'}
-        text-white disabled:bg-gray-400 transition-colors
-        border border-[#4285f4]/20 shadow-lg`}
-            >
-              {togglingContrast ? (
-                <>
-                  <span className="animate-spin text-lg">↻</span>
-                  <span className="text-xs">Updating...</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-xl">🎨</span>
-                  <span className="text-xs font-medium">
-                    {highContrastEnabled ? 'Disable Contrast' : 'High Contrast'}
-                  </span>
-                </>
+            {/* Reading List */}
+            <div className="relative">  {/* Added wrapper div */}
+              <button
+                onClick={handleAddToReadingList}
+                disabled={addingToReadingList}
+                className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+          bg-[#6752e0] hover:bg-[#5443b5]
+          text-white disabled:bg-gray-400 transition-colors
+          border border-[#4285f4]/20 shadow-lg w-full`}
+              >
+                {addingToReadingList ? (
+                  <>
+                    <span className="animate-spin text-lg">↻</span>
+                    <span className="text-xs">Adding...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xl">📚</span>
+                    <span className="text-xs font-medium">Add to Reading List</span>
+                  </>
+                )}
+              </button>
+              {readingListMessage && (
+                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 
+                    bg-[#34A853] text-white px-3 py-2 rounded-md text-sm
+                    shadow-lg transition-all duration-200 ease-in-out
+                    whitespace-nowrap">
+                  Added to reading list!
+                </div>
               )}
-            </button>
+            </div>
 
-            {/* Screenshot */}
-            <button
-              onClick={handleScreenshot}
-              disabled={takingScreenshot}
-              className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
-        bg-[#6752e0] hover:bg-[#5443b5]
-        text-white disabled:bg-gray-400 transition-colors
-        border border-[#4285f4]/20 shadow-lg`}
-            >
-              {takingScreenshot ? (
-                <>
-                  <span className="animate-spin text-lg">↻</span>
-                  <span className="text-xs">Capturing...</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-xl">📸</span>
-                  <span className="text-xs font-medium">Screenshot</span>
-                </>
+            {/* screenshot */}
+            <div className="relative">  {/* Added wrapper div */}
+              <button
+                onClick={handleScreenshot}
+                disabled={takingScreenshot}
+                className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+          bg-[#6752e0] hover:bg-[#5443b5]
+          text-white disabled:bg-gray-400 transition-colors
+          border border-[#4285f4]/20 shadow-lg w-full`}
+              >
+                {takingScreenshot ? (
+                  <>
+                    <span className="animate-spin text-lg">↻</span>
+                    <span className="text-xs">Capturing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xl">📸</span>
+                    <span className="text-xs font-medium">Screenshot</span>
+                  </>
+                )}
+              </button>
+              {showCopiedMessage && (
+                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 
+                    bg-[#34A853] text-white px-3 py-2 rounded-md text-sm
+                    shadow-lg transition-all duration-200 ease-in-out
+                    whitespace-nowrap">
+                  Copied to clipboard!
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Reopen Last Tab */}
             <button
@@ -633,7 +655,7 @@ function App() {
         </div>
 
 
-        {/* switch to manual controls */}
+        {/* switch to manual controls toggle */}
         <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
           <span className="text-gray-200 text-sm font-medium">Switch to Manual Controls</span>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -661,29 +683,54 @@ function App() {
           </label>
         </div>
 
-
-
-
-
-
         {showManualControls && (
 
 
-          <div className="border-t pt-4">
+          <div >
+
+
+            {/* Navigation section */}
+            <div className="border-t  pt-4 mt-2">
+              <div className='text-lg font-bold mb-2'>Navigation</div>
+              <form onSubmit={handleNavigationCommand} className="flex flex-col gap-3">
+                <input
+                  type="text"
+                  value={navigationInput}
+                  onChange={(e) => setNavigationInput(e.target.value)}
+                  placeholder="Type a navigation command (e.g., 'open settings', 'watch cat videos')"
+                  className="p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
+                focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] 
+                placeholder-gray-400"
+                  disabled={navigationLoading}
+                />
+                <button
+                  type="submit"
+                  className="bg-[#4285F4] text-white px-4 py-2 rounded-lg hover:bg-[#4285F4]/90 
+                disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+                  disabled={navigationLoading}
+                >
+                  {navigationLoading ? 'Processing...' : 'Navigate'}
+                </button>
+              </form>
+            </div>
             {/* Bookmark search section */}
-            <div className="border-t pt-4 mt-4">
+            <div className="border-t  border-gray-700 pt-2 mt-4">
+              <div className='text-lg font-bold mb-2'>Bookmarks</div>
               <form onSubmit={handleBookmarkSearch} className="flex flex-col gap-3">
                 <input
                   type="text"
                   value={bookmarkQuery}
                   onChange={(e) => setBookmarkQuery(e.target.value)}
                   placeholder="Search your bookmarks..."
-                  className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
+                 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] 
+                 placeholder-gray-400"
                   disabled={bookmarkLoading}
                 />
                 <button
                   type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-400"
+                  className="bg-[#4285F4] text-white px-4 py-2 rounded-lg hover:bg-[#4285F4]/90 
+                 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                   disabled={bookmarkLoading}
                 >
                   {bookmarkLoading ? 'Searching...' : 'Search Bookmarks'}
@@ -692,16 +739,14 @@ function App() {
 
               {bookmarkResults && (
                 <div
-                  className="mt-4 p-3 bg-gray-100 rounded"
+                  className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700 text-gray-100"
                   dangerouslySetInnerHTML={{ __html: bookmarkResults }}
                   onClick={(e) => {
-                    // Handle link clicks
                     const target = e.target as HTMLElement;
                     if (target.tagName === 'A') {
                       e.preventDefault();
                       const url = target.getAttribute('href');
                       if (url) {
-                        // Open link in new tab
                         chrome.tabs.create({ url });
                       }
                     }
@@ -710,36 +755,25 @@ function App() {
               )}
             </div>
 
-            {/* screenshot section temp */}
-            <div className="relative">
-              <button
-                onClick={handleScreenshot}
-                disabled={takingScreenshot}
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 w-full"
-              >
-                {takingScreenshot ? 'Taking Screenshot...' : 'Take Screenshot'}
-              </button>
-              {showCopiedMessage && (
-                <div className="absolute top-[-24px] left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-2 py-1 rounded text-sm">
-                  Copied to clipboard!
-                </div>
-              )}
-            </div>
 
             {/* Tab search section */}
-            <div className="border-t pt-4 mt-4">
+            <div className="border-t border-gray-700 pt-2 mt-4">
+              <div className='text-lg font-bold mb-2'>Tabs</div>
               <form onSubmit={handleTabSearch} className="flex flex-col gap-3">
                 <input
                   type="text"
                   value={tabQuery}
                   onChange={(e) => setTabQuery(e.target.value)}
                   placeholder="Search your open tabs..."
-                  className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
+                 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] 
+                 placeholder-gray-400"
                   disabled={tabLoading}
                 />
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                  className="bg-[#4285F4] text-white px-4 py-2 rounded-lg hover:bg-[#4285F4]/90 
+                 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                   disabled={tabLoading}
                 >
                   {tabLoading ? 'Searching...' : 'Search Tabs'}
@@ -748,19 +782,16 @@ function App() {
 
               {tabResults && (
                 <div
-                  className="mt-4 p-3 bg-gray-100 rounded"
+                  className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700 text-gray-100"
                   dangerouslySetInnerHTML={{ __html: tabResults }}
                   onClick={async (e) => {
-                    // Handle link clicks
                     const target = e.target as HTMLElement;
                     if (target.tagName === 'A') {
                       e.preventDefault();
                       const tabId = target.getAttribute('data-tab-id');
                       if (tabId) {
                         try {
-                          // Switch to the clicked tab
                           await chrome.tabs.update(parseInt(tabId), { active: true });
-                          // Optionally, focus the window containing the tab
                           const tab = await chrome.tabs.get(parseInt(tabId));
                           if (tab.windowId) {
                             await chrome.windows.update(tab.windowId, { focused: true });
@@ -777,19 +808,23 @@ function App() {
             </div>
 
             {/* /history search section*  */}
-            <div className="border-t pt-4 mt-4">
+            <div className="border-t border-gray-700 pt-2 mt-4">
+              <div className='text-lg font-bold mb-2'>History</div>
               <form onSubmit={handleHistorySearch} className="flex flex-col gap-3">
                 <input
                   type="text"
                   value={historyQuery}
                   onChange={(e) => setHistoryQuery(e.target.value)}
                   placeholder="Search your history..."
-                  className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
+                focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] 
+                placeholder-gray-400"
                   disabled={historyLoading}
                 />
                 <button
                   type="submit"
-                  className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 disabled:bg-gray-400"
+                  className="bg-[#4285F4] text-white px-4 py-2 rounded-lg hover:bg-[#4285F4]/90 
+                disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                   disabled={historyLoading}
                 >
                   {historyLoading ? 'Searching...' : 'Search History'}
@@ -798,7 +833,7 @@ function App() {
 
               {historyResults && (
                 <div
-                  className="mt-4 p-3 bg-gray-100 rounded"
+                  className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700 text-gray-100"
                   dangerouslySetInnerHTML={{ __html: historyResults }}
                   onClick={(e) => {
                     const target = e.target as HTMLElement;
@@ -812,123 +847,101 @@ function App() {
                   }}
                 />
               )}
-            </div>
-
-            {/* clear history section */}
-            <div className="border-t pt-4 mt-4">
-              <h3 className="font-semibold mb-2">Clear Browser History</h3>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleClearHistory('last24h')}
-                  disabled={clearingHistory}
-                  className="flex-1 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 disabled:bg-gray-400"
-                >
-                  {clearingHistory ? 'Clearing...' : 'Clear Last 24 Hours'}
-                </button>
-                <button
-                  onClick={() => handleClearHistory('allTime')}
-                  disabled={clearingHistory}
-                  className="flex-1 bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800 disabled:bg-gray-400"
-                >
-                  {clearingHistory ? 'Clearing...' : 'Clear All History'}
-                </button>
+              {/* clear history section */}
+              <div className="mt-2">
+                <div className="text-gray-400 text-sm font-medium mb-2">Clear History</div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleClearHistory('last24h')}
+                    disabled={clearingHistory}
+                    className="flex-1 bg-[#EA4335]/20 text-[#EA4335] px-4 py-2 rounded-lg hover:bg-[#EA4335]/15 
+                    border border-[#EA4335]/10 disabled:bg-gray-800 disabled:text-gray-500 transition-all duration-200"
+                  >
+                    {clearingHistory ? 'Clearing...' : 'Last 24 Hours'}
+                  </button>
+                  <button
+                    onClick={() => handleClearHistory('allTime')}
+                    disabled={clearingHistory}
+                    className="flex-1 bg-[#EA4335]/20 text-[#EA4335] px-4 py-2 rounded-lg
+                 hover:bg-[#EA4335]/15
+                 border border-[#EA4335]/30
+                 disabled:bg-gray-800 disabled:text-gray-500
+                 transition-all duration-200"
+                  >
+                    {clearingHistory ? 'Clearing...' : 'All History'}
+                  </button>
+                </div>
+                {clearHistoryMessage && (
+                  <div className="mt-2 p-3 bg-gray-800 rounded-lg border border-gray-700 text-gray-300 text-sm">
+                    {clearHistoryMessage}
+                  </div>
+                )}
               </div>
-              {clearHistoryMessage && (
-                <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
-                  {clearHistoryMessage}
-                </div>
-              )}
             </div>
 
-            {/* add to reading list  */}
-            <div className="border-t pt-4">
+
+            {/* High Contrast section */}
+            <div className="border-t border-gray-700 pt-2 mt-4">
+              <div className='text-lg font-bold mb-2'>High Contrast</div>
               <button
-                onClick={handleAddToReadingList}
-                disabled={addingToReadingList}
-                className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 flex items-center justify-center gap-2"
+                onClick={handleToggleHighContrast}
+                disabled={togglingContrast}
+                className={`w-full ${highContrastEnabled ? 'bg-[#34A853]' : 'bg-[#4285F4]'} 
+                text-white px-4 py-3 rounded-lg 
+                ${highContrastEnabled ? 'hover:bg-[#34A853]/90' : 'hover:bg-[#4285F4]/90'}
+                disabled:bg-gray-600 disabled:cursor-not-allowed 
+                transition-colors
+                flex items-center justify-center gap-2`}
               >
-                {addingToReadingList ? (
+                {togglingContrast ? (
                   <>
                     <span className="animate-spin">↻</span>
-                    Adding to Reading List...
+                    Updating...
                   </>
                 ) : (
                   <>
-                    <span>📚</span>
-                    Add to Reading List
-                  </>
-                )}
-              </button>
-              {readingListMessage && (
-                <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
-                  {readingListMessage}
-                </div>
-              )}
-            </div>
-
-            {/*navigation section */}
-            <div className="border-b pb-4">
-              <form onSubmit={handleNavigationCommand} className="flex flex-col gap-3">
-                <input
-                  type="text"
-                  value={navigationInput}
-                  onChange={(e) => setNavigationInput(e.target.value)}
-                  placeholder="Type a navigation command (e.g., 'open settings', 'watch cat videos')"
-                  className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={navigationLoading}
-                />
-                <button
-                  type="submit"
-                  className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 disabled:bg-gray-400"
-                  disabled={navigationLoading}
-                >
-                  {navigationLoading ? 'Processing...' : 'Navigate'}
-                </button>
-              </form>
-            </div>
-
-            {/* reopen last tab */}
-            <div className="border-t pt-4">
-              <button
-                onClick={handleReopenLastTab}
-                disabled={reopeningTab}
-                className="w-full bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-400 flex items-center justify-center gap-2"
-              >
-                {reopeningTab ? (
-                  <>
-                    <span className="animate-spin">↻</span>
-                    Reopening Last Tab...
-                  </>
-                ) : (
-                  <>
-                    <span>↩️</span>
-                    Reopen Last Closed Tab
+                    <span>🎨</span>
+                    {highContrastEnabled ? 'Disable High Contrast' : 'Enable High Contrast'}
                   </>
                 )}
               </button>
             </div>
+
 
             {/* Font size adjustment */}
-            <div className="border-t pt-4">
+            <div className="border-t border-gray-700 pt-2 mt-4">
+              <div className='text-lg font-bold mb-2'>Font Size</div>
               <div className="flex justify-between gap-2">
                 <button
                   onClick={handleDecreaseFontSize}
                   disabled={adjustingFontSize}
-                  className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                  className="flex-1 bg-[#4285F4] text-white px-4 py-3 rounded-lg 
+                hover:bg-[#4285F4]/90
+                disabled:bg-gray-600 disabled:cursor-not-allowed 
+                transition-colors
+                flex items-center justify-center"
                 >
                   A-
                 </button>
                 <button
                   onClick={handleResetFontSize}
                   disabled={adjustingFontSize}
-                  className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-400"
+                  className="flex-1 bg-gray-700 text-gray-200 px-4 py-3 rounded-lg 
+                hover:bg-gray-600
+                disabled:bg-gray-800 disabled:text-gray-500
+                transition-colors
+                flex items-center justify-center"
                 >
                   Reset
                 </button>
                 <button
                   onClick={handleIncreaseFontSize}
                   disabled={adjustingFontSize}
-                  className="flex-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                  className="flex-1 bg-[#4285F4] text-white px-4 py-3 rounded-lg 
+                hover:bg-[#4285F4]/90
+                disabled:bg-gray-600 disabled:cursor-not-allowed 
+                transition-colors
+                flex items-center justify-center"
                 >
                   A+
                 </button>
@@ -936,8 +949,8 @@ function App() {
             </div>
 
             {/* Reminders */}
-            <div className="border-t pt-4 mt-4">
-              <h3 className="font-semibold mb-2">Reminders</h3>
+            <div className="border-t border-gray-700 pt-2 mt-4">
+              <div className='text-lg font-bold mb-2'>Reminders</div>
 
               <form onSubmit={handleCreateReminder} className="flex flex-col gap-3">
                 <input
@@ -945,7 +958,9 @@ function App() {
                   value={reminderContent}
                   onChange={(e) => setReminderContent(e.target.value)}
                   placeholder="What do you want to be reminded about?"
-                  className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
+                focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] 
+                placeholder-gray-400"
                   required
                 />
 
@@ -954,14 +969,18 @@ function App() {
                     type="date"
                     value={reminderDate}
                     onChange={(e) => setReminderDate(e.target.value)}
-                    className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
+                  focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4]
+                  [color-scheme:dark]"
                     required
                   />
                   <input
                     type="time"
                     value={reminderTime}
                     onChange={(e) => setReminderTime(e.target.value)}
-                    className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 p-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-lg 
+                  focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4]
+                  [color-scheme:dark]"
                     required
                   />
                 </div>
@@ -969,7 +988,8 @@ function App() {
                 <button
                   type="submit"
                   disabled={creatingReminder}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                  className="bg-[#4285F4] text-white px-4 py-3 rounded-lg hover:bg-[#4285F4]/90 
+                disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                 >
                   {creatingReminder ? 'Creating...' : 'Set Reminder'}
                 </button>
@@ -978,24 +998,25 @@ function App() {
               {/* List of reminders */}
               <div className="mt-4">
                 {reminders.length === 0 ? (
-                  <p className="text-gray-500 text-center">No reminders set</p>
+                  <p className="text-gray-400 text-center">No reminders set</p>
                 ) : (
                   <div className="space-y-2">
                     {reminders.map(reminder => (
                       <div
                         key={reminder.id}
-                        className={`p-3 rounded-lg border flex justify-between items-center
-              ${reminder.notified ? 'bg-gray-100' : 'bg-white'}`}
+                        className={`p-3 rounded-lg border border-gray-700 flex justify-between items-center
+                      ${reminder.notified ? 'bg-gray-800' : 'bg-gray-700'}`}
                       >
                         <div>
-                          <p className="font-medium">{reminder.content}</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="font-medium text-gray-100">{reminder.content}</p>
+                          <p className="text-sm text-gray-400">
                             {new Date(reminder.timestamp).toLocaleString()}
                           </p>
                         </div>
                         <button
                           onClick={() => handleDeleteReminder(reminder.id)}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-[#EA4335] hover:text-[#EA4335]/80 transition-colors
+                        px-2 py-1 rounded-md hover:bg-[#EA4335]/20"
                         >
                           Delete
                         </button>
@@ -1005,7 +1026,13 @@ function App() {
                 )}
               </div>
             </div>
-          </div>)}
+
+
+
+
+
+          </div>
+        )}
 
 
         {/* tts section bottom*/}

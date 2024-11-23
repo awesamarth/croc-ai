@@ -72,7 +72,7 @@ interface FunctionParameter {
   
     {
       name: "navigate",
-      description: "Open webpage or chrome page",
+      description: "Open webpage or chrome page, go to youtube search page",
       parameters: [
         {
           name: "command",
@@ -84,7 +84,9 @@ interface FunctionParameter {
       examples: [
         "open settings",
         "go to twitter",
-        "open chrome downloads"
+        "open chrome downloads",
+        "i want to watch a video about cats",
+        "i want to watch cat videos"
       ],
       handler: "handleNavigation"
     },
@@ -101,32 +103,33 @@ interface FunctionParameter {
       handler: "addToReadingList"
     },
   
-    {
-      name: "reopenLastTab",
-      description: "Restore recently closed tab",
-      parameters: [],
-      examples: [
-        "reopen last tab",
-        "restore closed tab"
-      ],
-      handler: "reopenLastClosedTab"
-    },
+    // {
+    //   name: "reopenLastTab",
+    //   description: "Restore recently closed tab",
+    //   parameters: [],
+    //   examples: [
+    //     "reopen last tab",
+    //     "restore closed tab"
+    //   ],
+    //   handler: "reopenLastClosedTab"
+    // },
   
     {
       name: "clearHistory",
       description: "Clear browser history",
       parameters: [
         {
-          name: "option",
+          name: "time",
           type: "string",
-          description: "'last24h' or 'allTime'",
+          description: "possible values are 'last24h' and 'allTime'",
           required: true
         }
       ],
       examples: [
         "clear history",
         "delete all history",
-        "clear today's history"
+        "clear today's history (for clearing last 24 hours' history)",
+        "clear history for the last 24 hours"
       ],
       handler: "clearHistory"
     },
@@ -155,6 +158,7 @@ interface FunctionParameter {
       ],
       handler: "createReminder"
     },
+    
     {
       name: "adjustFontSize", 
       description: "Increase or decrease browser font size",

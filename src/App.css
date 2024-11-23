@@ -1,43 +1,45 @@
-/* in App.css */
 .matches {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .match {
-    background: white;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-  }
-  
-  .match:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .match a {
-    color: #1a1a1a;
-    text-decoration: none;
-    font-size: 14px;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    position: relative;
-    padding-left: 24px;
-  }
-  
-  .match a::before {
-    content: '🔖';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  
-  /* Add some hover states */
-  .match a:hover {
-    color: #3b82f6;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.match {
+  background: #1f2937; /* dark gray background */
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #374151; /* subtle border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  cursor:pointer;
+}
+
+.match:hover {
+  transform: translateY(-1px);
+  background: #2d3748; /* slightly lighter on hover */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.match a {
+  color: #60a5fa; /* blue text */
+  text-decoration: none;
+  font-size: 14px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+  padding-left: 24px;
+}
+
+.match a::before {
+  content: '🔖';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Add some hover states */
+.match a:hover {
+  color: #93c5fd; /* lighter blue on hover */
+}
