@@ -103,16 +103,24 @@ interface FunctionParameter {
       handler: "addToReadingList"
     },
   
-    // {
-    //   name: "reopenLastTab",
-    //   description: "Restore recently closed tab",
-    //   parameters: [],
-    //   examples: [
-    //     "reopen last tab",
-    //     "restore closed tab"
-    //   ],
-    //   handler: "reopenLastClosedTab"
-    // },
+    {
+      name: "toggleHighContrast",
+      description: "Set high contrast on or off",
+      parameters: [
+        {
+          name: "enable",
+          type: "boolean",
+          description: "true for on and false for off",
+          required: true
+        }
+      ],
+      examples: [
+        "turn on high contrast theme",
+        "turn off high contrast theme",
+        "enable high contrast"
+      ],
+      handler: "toggleHighContrast"
+    },
   
     {
       name: "clearHistory",
