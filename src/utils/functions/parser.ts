@@ -9,6 +9,7 @@ import { reopenLastClosedTab } from '../miscellaneous';
 import { functionRegistry } from './registry';
 import { createReminder } from '../reminders';
 import { adjustFontSize, resetFontSize } from '../miscellaneous';
+import { toggleHighContrast } from '../highcontrast_toggle';
 
 
 
@@ -29,6 +30,7 @@ const functionHandlers: Record<string, Function> = {
     createReminder: createReminder,
     adjustFontSize:adjustFontSize,
     resetFontSize:resetFontSize,
+    toggleHighContrast:toggleHighContrast
 
 };
 

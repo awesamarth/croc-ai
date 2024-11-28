@@ -24,11 +24,17 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ["selection"]
   });
 
-chrome.contextMenus.create({
-  id: "crocWriter",
-  title: "Croc Writer",
-  contexts: ["editable"]
-});
+  chrome.contextMenus.create({
+    id: "crocWriter",
+    title: "Croc Writer",
+    contexts: ["editable"]
+  });
+
+  chrome.contextMenus.create({
+    id: 'transliterateSelection',
+    title: 'Transliterate selection',
+    contexts: ['selection']
+  });
 });
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -80,7 +86,17 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       targetLanguage
     });
   }
+  else if (info.menuItemId === 'transliterateSelection' && info.selectionText) {
+    console.log("reached transliterate selection here")
+    const { transliterationTargetLanguage } = await chrome.storage.local.get('transliterationTargetLanguage');
 
+    //@ts-ignore
+    chrome.tabs.sendMessage(tab.id!, {
+      type: 'transliterateSelection',
+      text: info.selectionText,
+      transliterationTargetLanguage
+    });
+  }
   else if (info.menuItemId === "readText" && info.selectionText && tab?.id) {
     // First ensure the content script is injected
     try {
@@ -91,7 +107,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           return true;
         }
       });
-      
+
       // Now send the message
       chrome.tabs.sendMessage(tab.id, {
         type: "readAloud",
@@ -108,7 +124,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         target: { tabId: tab.id },
         func: () => true
       });
-      
+
       // Send message to content script
       await chrome.tabs.sendMessage(tab.id, {
         type: 'showWriter',
@@ -121,4 +137,5 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       console.error('Error showing writer:', error);
     }
   }
+
 });

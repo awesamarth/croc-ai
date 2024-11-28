@@ -31,6 +31,7 @@ const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
   { code: 'ja', name: 'Japanese' },
   { code: 'de', name: 'German' },
   { code: 'fr', name: 'French' },
+  { code: 'ru', name: 'Russian' }
   // Add other supported languages as needed
 ];
 
@@ -75,7 +76,8 @@ function App() {
   const [commandResult, setCommandResult] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showManualControls, setShowManualControls] = useState(false);
-
+  const [transliterationEnabled, setTransliterationEnabled] = useState(false);
+  const [transliterationTargetLanguage, setTransliterationTargetLanguage] = useState('hi');
 
   const handleExplainText = async (text: string) => {
     console.log("handleExplainText started with:", text);
@@ -104,6 +106,13 @@ function App() {
       targetLanguage
     });
   }, [autoTranslateEnabled, targetLanguage]);
+  useEffect(() => {
+    chrome.storage.local.set({
+      transliterationEnabled,
+      transliterationTargetLanguage
+    });
+    console.log("language changed to ", transliterationTargetLanguage)
+  }, [transliterationEnabled, transliterationTargetLanguage]);
   useEffect(() => {
     chrome.runtime.onMessage.addListener((message) => {
       console.log("Message received in App:", message);
@@ -135,6 +144,7 @@ function App() {
     loadReminders();
 
   }, []);
+
 
 
   const handleBookmarkSearch = async (e: React.FormEvent) => {
@@ -476,9 +486,12 @@ function App() {
               onClick={() => setExplanation('')}
               className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-300"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="feather feather-volume-2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07">
+                </path>
               </svg>
+
             </button>
             <h2 className="text-gray-200 font-semibold mb-3">Text Explanation</h2>
             <p className="text-gray-300 whitespace-pre-wrap">{explanation}</p>
@@ -492,9 +505,7 @@ function App() {
                 onClick={() => setTextToRead(summaryArbitrary)}
                 className="p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-300"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.414a5 5 0 001.414 1.414m2.828 2.828a9 9 0 002.828 2.828" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="feather feather-volume-2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
               </button>
               <button
                 onClick={() => setSummaryArbitrary('')}
@@ -533,6 +544,32 @@ function App() {
               className="sr-only peer"
               checked={autoTranslateEnabled}
               onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
+            />
+            <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90">
+            </div>
+          </label>
+        </div>
+
+        {/* transliteration section */}
+        <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg ">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-200 text-sm font-medium">Transliterate to</span>
+            <select
+              className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
+              value={transliterationTargetLanguage}
+              onChange={(e) => setTransliterationTargetLanguage(e.target.value)}
+              disabled={!transliterationEnabled}
+            >
+              <option value="hi">हिंदी</option>
+              <option value="ru">Русский</option>
+            </select>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={transliterationEnabled}
+              onChange={(e) => setTransliterationEnabled(e.target.checked)}
             />
             <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90">
             </div>

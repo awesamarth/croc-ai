@@ -26,7 +26,7 @@
   ],
   "side_panel": {
     "default_path": "index.html",
-    "default_width": 400
+    "default_width": 450
   },
   "background": {
     "service_worker": "background.js"

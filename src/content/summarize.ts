@@ -69,14 +69,14 @@ const extractArticleText = (): string => {
   if (hostname.includes('hashnode.dev')) {
     const article = document.querySelector('div[class*="prose"]')
     if (!article) return ''
-    
+
     // Get all text content except code blocks and metadata
     const paragraphs = Array.from(article.querySelectorAll('p, h1, h2, h3, h4, h5, h6'))
       .filter(el => !el.closest('pre')) // Exclude code blocks
       .map(p => p.textContent?.trim())
       .filter(text => text)
       .join('\n')
-    
+
     return paragraphs
   }
 
@@ -285,10 +285,12 @@ const createSummaryUI = async () => {
       summaryTitle.className = 'croc-summary-title'
       summaryTitle.textContent = 'Summary'
 
-      const speakerButton = document.createElement('button')
-      speakerButton.className = 'croc-speaker-button'
-      speakerButton.innerHTML = `<span>speak</span>`
-      speakerButton.setAttribute('aria-label', 'Read summary aloud')
+      const speakerButton = document.createElement('button');
+      speakerButton.className = 'croc-speaker-button';
+      speakerButton.innerHTML = `
+       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-volume-2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+      `;
+      speakerButton.setAttribute('aria-label', 'Read summary aloud');
 
       summaryHeader.appendChild(summaryTitle)
       summaryHeader.appendChild(speakerButton)
@@ -358,88 +360,8 @@ export const initializeSummarize = () => {
 // Add this at the bottom of summarize.ts, near initializeSummarize
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'readAloud' && message.text) {
-    console.log("pohocha")
-    const textToSpeak = message.text;
+    console.log("read aloud message received")
+    createAudioControls(message.text);
 
-    // Remove any existing audio controls
-    const existingControls = document.querySelector('.croc-audio-controls');
-    if (existingControls) {
-      existingControls.remove();
-    }
-
-    // Create audio controls
-    const audioControls = document.createElement('div');
-    audioControls.className = 'croc-audio-controls';
-
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.rate = 1; // Set default speed
-    let currentSpeed = 1;
-    let isPlaying = true;
-
-    // Start speaking immediately
-    speechSynthesis.speak(utterance);
-
-    // Create play/pause button
-    const playPauseButton = document.createElement('button');
-    playPauseButton.innerHTML = `<span>pause</span>`;
-
-    // Create speed controls
-    const speedControls = document.createElement('div');
-    speedControls.className = 'croc-speed-controls';
-
-    [0.5, 0.75, 1, 1.5, 2].forEach(speed => {
-      const speedButton = document.createElement('button');
-      speedButton.className = `croc-speed-button ${speed === currentSpeed ? 'active' : ''}`;
-      speedButton.textContent = `${speed}x`;
-      speedButton.onclick = () => {
-        utterance.rate = speed;
-        currentSpeed = speed;
-        speedControls.querySelectorAll('.croc-speed-button').forEach(btn =>
-          btn.classList.toggle('active', btn === speedButton)
-        );
-        if (isPlaying) {
-          speechSynthesis.cancel();
-          utterance.rate = currentSpeed;
-          speechSynthesis.speak(utterance);
-        }
-      };
-      speedControls.appendChild(speedButton);
-    });
-
-    playPauseButton.onclick = () => {
-      if (isPlaying) {
-        speechSynthesis.pause();
-        playPauseButton.innerHTML = `<span>play</span>`;
-      } else {
-        if (speechSynthesis.paused) {
-          speechSynthesis.resume();
-        } else {
-          utterance.rate = currentSpeed;
-          speechSynthesis.speak(utterance);
-        }
-        playPauseButton.innerHTML = `<span>pause</span>`;
-      }
-      isPlaying = !isPlaying;
-    };
-
-    // Create close button
-    const closeButton = document.createElement('button');
-    closeButton.innerHTML = `<span>close</span>`;
-    closeButton.onclick = () => {
-      speechSynthesis.cancel();
-      audioControls.remove();
-    };
-
-    // Add event handlers for utterance
-    utterance.onend = () => {
-      isPlaying = false;
-      playPauseButton.innerHTML = `<span>play</span>`;
-    };
-
-    // Assemble controls
-    audioControls.appendChild(playPauseButton);
-    audioControls.appendChild(speedControls);
-    audioControls.appendChild(closeButton);
-    document.body.appendChild(audioControls);
   }
 });
