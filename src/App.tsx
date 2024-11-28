@@ -13,6 +13,7 @@ import { handleNavigation } from './utils/navigation'
 import { adjustFontSize, reopenLastClosedTab, resetFontSize, toggleBionicReading } from './utils/miscellaneous';
 import { getReminders, deleteReminder, type Reminder, createReminderManual } from './utils/reminders';
 import crocLogo from '/icons/croc256.png'
+import { useVoiceCommand } from './hooks/useVoiceCommand';
 
 
 
@@ -79,6 +80,10 @@ function App() {
   const [transliterationEnabled, setTransliterationEnabled] = useState(false);
   const [transliterationTargetLanguage, setTransliterationTargetLanguage] = useState('hi');
 
+  const { isListening, startListening } = useVoiceCommand((transcript) => {
+    setCommand(transcript);
+  });
+
   const handleExplainText = async (text: string) => {
     console.log("handleExplainText started with:", text);
     try {
@@ -144,6 +149,12 @@ function App() {
     loadReminders();
 
   }, []);
+  useEffect(() => {
+    // Only submit if command exists and came from voice input
+    if (command && isListening) {
+      handleCommandSubmit();
+    }
+  }, [command, isListening]);
 
 
 
@@ -385,8 +396,8 @@ function App() {
       setReminders(reminders.filter(r => r.id !== id));
     }
   };
-  const handleCommandSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCommandSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!command.trim()) return;
 
     try {
@@ -443,17 +454,43 @@ function App() {
         {/* command input main */}
         <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-4">
           <form onSubmit={handleCommandSubmit} className="flex flex-col gap-3">
-            <input
-              type="text"
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              placeholder="Type a command (e.g., 'search history for cat videos')"
-              className="p-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] bg-gray-700 text-gray-100"
-              disabled={isProcessing}
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={command}
+                onChange={(e) => setCommand(e.target.value)}
+                placeholder="Type a command or click microphone to speak"
+                className="flex-1 p-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] bg-gray-700 text-gray-100"
+                disabled={isProcessing}
+              />
+              <button
+                type="button"
+                onClick={startListening}
+                disabled={isProcessing || isListening}
+                className={`px-3 py-1 rounded-lg transition-colors ${isListening
+                  ? 'bg-red-500 hover:bg-red-600'
+                  : 'bg-[#6752e0] hover:bg-[#5443b5]/90'
+                  } disabled:bg-gray-600`}
+                title={isListening ? 'Listening...' : 'Click to use voice command'}
+              >
+                <svg
+                  className={`w-5 h-5 text-white ${isListening ? 'animate-pulse' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
+                </svg>
+              </button>
+            </div>
             <button
               type="submit"
-              className="bg-chrome-blue hover:bg-opacity-90 text-white px-4 py-2 rounded-lg  disabled:bg-gray-600 transition-colors"
+              className="bg-chrome-blue hover:bg-opacity-90 text-white px-4 py-2 rounded-lg disabled:bg-gray-600 transition-colors"
               disabled={isProcessing}
             >
               {isProcessing ? 'Processing...' : 'Execute'}
@@ -520,61 +557,63 @@ function App() {
           </div>
         )}
 
-        {/*auto translate section*/}
-        <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-200 text-sm font-medium">Auto-translate pages</span>
-            <span className="text-gray-200 text-sm">to</span>
-            <select
-              className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
-              value={targetLanguage}
-              onChange={(e) => setTargetLanguage(e.target.value)}
-              disabled={!autoTranslateEnabled}
-            >
-              {SUPPORTED_LANGUAGES.map(lang => (
-                <option key={lang.code} value={lang.code} className="bg-gray-700">
-                  {lang.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={autoTranslateEnabled}
-              onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
-            />
-            <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90">
+        <div className="flex flex-col gap-6 bg-gray-800 rounded-lg p-4">
+          {/* Auto-translate row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-200 text-sm font-medium">Auto-translate pages</span>
+              <span className="text-gray-200 text-sm">to</span>
+              <select
+                className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
+                value={targetLanguage}
+                onChange={(e) => setTargetLanguage(e.target.value)}
+                disabled={!autoTranslateEnabled}
+              >
+                {SUPPORTED_LANGUAGES.map(lang => (
+                  <option key={lang.code} value={lang.code} className="bg-gray-700">
+                    {lang.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          </label>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={autoTranslateEnabled}
+                onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
+              />
+              <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90" />
+            </label>
+          </div>
+
+          {/* Transliterate row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-200 text-sm font-medium">Transliterate to</span>
+              <select
+                className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
+                value={transliterationTargetLanguage}
+                onChange={(e) => setTransliterationTargetLanguage(e.target.value)}
+                disabled={!transliterationEnabled}
+              >
+                <option value="hi">हिंदी</option>
+                <option value="ru">Русский</option>
+              </select>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={transliterationEnabled}
+                onChange={(e) => setTransliterationEnabled(e.target.checked)}
+              />
+              <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90" />
+            </label>
+          </div>
         </div>
 
-        {/* transliteration section */}
-        <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg ">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-200 text-sm font-medium">Transliterate to</span>
-            <select
-              className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
-              value={transliterationTargetLanguage}
-              onChange={(e) => setTransliterationTargetLanguage(e.target.value)}
-              disabled={!transliterationEnabled}
-            >
-              <option value="hi">हिंदी</option>
-              <option value="ru">Русский</option>
-            </select>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={transliterationEnabled}
-              onChange={(e) => setTransliterationEnabled(e.target.checked)}
-            />
-            <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90">
-            </div>
-          </label>
-        </div>
+
 
 
         {/* grid with 4 options */}
