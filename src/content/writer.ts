@@ -4,7 +4,6 @@ interface WriterOptions {
     mode: 'write_new' | 'rewrite';
     tone: 'casual' | 'formal' | 'professional';
     length: 'short' | 'medium' | 'long';
-    transliterate: 'none' | 'hindi' | 'sanskrit';
 }
 
 export async function generateText(text: string, options: WriterOptions): Promise<string> {
@@ -244,20 +243,9 @@ function showWriterPopup(inputElement: HTMLInputElement | HTMLTextAreaElement) {
         </select>
     `;
 
-    const transliterateOption = document.createElement('div');
-    transliterateOption.className = 'croc-writer-option';
-    transliterateOption.innerHTML = `
-        <span>Transliterate</span>
-        <select>
-            <option value="none">None</option>
-            <option value="hindi">Hindi</option>
-            <option value="sanskrit">Sanskrit</option>
-        </select>
-    `;
 
     options.appendChild(toneOption);
     options.appendChild(lengthOption);
-    options.appendChild(transliterateOption);
    
     // Create apply button
     const applyButton = document.createElement('button');
@@ -272,13 +260,11 @@ function showWriterPopup(inputElement: HTMLInputElement | HTMLTextAreaElement) {
         const activeTab = tabs.querySelector('.active') as HTMLElement;
         const toneSelect = toneOption.querySelector('select') as HTMLSelectElement;
         const lengthSelect = lengthOption.querySelector('select') as HTMLSelectElement;
-        const transliterateSelect = transliterateOption.querySelector('select') as HTMLSelectElement;
 
         const options: WriterOptions = {
           mode: activeTab.textContent?.toLowerCase().includes('rewrite') ? 'rewrite' : 'write_new',
           tone: toneSelect.value as 'casual' | 'formal' | 'professional',
           length: lengthSelect.value as 'short' | 'medium' | 'long',
-          transliterate: transliterateSelect.value as 'none' | 'hindi' | 'sanskrit'
         };
    
         const text = textarea.value || 'Write something creative';

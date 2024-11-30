@@ -5,11 +5,12 @@ import { searchBookmarksWithAI } from '../bookmarks';
 import { searchTabsWithAI } from '../tabs';
 import { handleNavigation } from '../navigation';
 import { addToReadingList } from '../readingList';
-import { reopenLastClosedTab } from '../miscellaneous';
+import { reopenLastClosedTab, toggleBionicReading } from '../miscellaneous';
 import { functionRegistry } from './registry';
 import { createReminder } from '../reminders';
 import { adjustFontSize, resetFontSize } from '../miscellaneous';
 import { toggleHighContrast } from '../highcontrast_toggle';
+import { captureAndSaveScreenshot } from '../screenshot';
 
 
 
@@ -30,7 +31,9 @@ const functionHandlers: Record<string, Function> = {
     createReminder: createReminder,
     adjustFontSize:adjustFontSize,
     resetFontSize:resetFontSize,
-    toggleHighContrast:toggleHighContrast
+    toggleHighContrast:toggleHighContrast,
+    toggleBionicReading: toggleBionicReading,
+    captureScreenshot: captureAndSaveScreenshot,
 
 };
 

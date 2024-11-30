@@ -3,14 +3,14 @@ interface HistoryItem {
   title?: string;
   url: string;
 }
-export type HistoryClearOption = 'last24h' | 'allTime';
+export type HistoryClearOption = 'last 24 hours' | 'allTime';
 
 
 async function getRecentHistory(): Promise<HistoryItem[]> {
   return new Promise((resolve) => {
     chrome.history.search({
       text: '',
-      maxResults: 20,
+      // maxResults: 20,
       startTime: 0
     }, (historyItems) => {
       //@ts-ignore
@@ -119,9 +119,10 @@ export async function searchHistoryWithAI(query: string) {
 
 
 export async function clearHistory(option: HistoryClearOption): Promise<string> {
+  console.log('history clear options is: ', option)
   try {
     const now = Date.now();
-    const startTime = option === 'last24h'
+    const startTime = option === 'last 24 hours'
       ? now - (24 * 60 * 60 * 1000) // 24 hours ago
       : 0; // Beginning of time for 'allTime'
 
@@ -133,7 +134,7 @@ export async function clearHistory(option: HistoryClearOption): Promise<string> 
         if (chrome.runtime.lastError) {
           resolve(`Error clearing history: ${chrome.runtime.lastError.message}`);
         } else {
-          const message = option === 'last24h'
+          const message = option === 'last 24 hours'
             ? 'Successfully cleared last 24 hours of history'
             : 'Successfully cleared all browsing history';
           resolve(message);

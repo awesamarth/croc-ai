@@ -37,7 +37,7 @@ export async function handleNavigation(userPrompt: string): Promise<boolean> {
         Assistant: https://twitter.com`
       });
   
-      const response = await session.prompt(userPrompt);
+      const response = await session.prompt(userPrompt,);
       session.destroy();
   
       const cleanResponse = response.trim();

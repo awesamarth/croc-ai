@@ -1,6 +1,8 @@
+import { getAISession } from "./utils/ai";
+
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async() => {
   chrome.contextMenus.create({
     id: "explainText",
     title: "Explain text",
@@ -35,6 +37,12 @@ chrome.runtime.onInstalled.addListener(() => {
     title: 'Transliterate selection',
     contexts: ['selection']
   });
+
+  try {
+    await getAISession();
+  } catch (error) {
+    console.error('Error initializing AI session:', error);
+  }
 });
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -138,4 +146,13 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
   }
 
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  try {
+    await getAISession();
+    console.log("ai session created")
+  } catch (error) {
+    console.error('Error initializing AI session:', error);
+  }
 });

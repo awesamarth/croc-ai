@@ -459,7 +459,7 @@ function App() {
                 type="text"
                 value={command}
                 onChange={(e) => setCommand(e.target.value)}
-                placeholder="Type a command or click microphone to speak"
+                placeholder="What do you want to do? eg. search my history, watch cat videos..."
                 className="flex-1 p-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:border-[#4285F4] bg-gray-700 text-gray-100"
                 disabled={isProcessing}
               />
@@ -518,25 +518,29 @@ function App() {
         )}
 
         {explanation && (
-          <div className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700 relative">
-            <button
-              onClick={() => setExplanation('')}
-              className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-300"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="feather feather-volume-2">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07">
-                </path>
-              </svg>
-
-            </button>
-            <h2 className="text-gray-200 font-semibold mb-3">Text Explanation</h2>
-            <p className="text-gray-300 whitespace-pre-wrap">{explanation}</p>
+          <div className="mt-2 p-4 bg-gray-800 rounded-lg border border-gray-700 relative">
+            <div className="flex justify-end gap-2 absolute top-3 right-3">
+              <button
+                onClick={() => setTextToRead(explanation)}
+                className="p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="feather feather-volume-2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              </button>
+              <button
+                onClick={() => setExplanation('')}
+                className="p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-gray-300 pr-16">{explanation}</p>
           </div>
         )}
 
         {summaryArbitrary && (
-          <div className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700 relative">
+          <div className="mt-2 p-4 bg-gray-800 rounded-lg border border-gray-700 relative">
             <div className="flex justify-end gap-2 absolute top-3 right-3">
               <button
                 onClick={() => setTextToRead(summaryArbitrary)}
@@ -616,127 +620,11 @@ function App() {
 
 
 
-        {/* grid with 4 options */}
-        <div className="pt-2">
-          <div className="grid grid-cols-2 gap-3 max-w-[350px] mx-auto">
 
-
-            {/* ezRead Mode */}
-            <button
-              onClick={handleToggleBionicReading}
-              disabled={toggling}
-              className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
-    ${bionicReadingEnabled
-                  ? 'bg-[#34A853] hover:bg-[#2E8B47]'
-                  : 'bg-[#6752e0] hover:bg-[#5443b5]'}
-    text-white disabled:bg-gray-400 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.1)] `}
-            >
-              {toggling ? (
-                <>
-                  <span className="animate-spin text-lg">↻</span>
-                  <span className="text-xs">Updating...</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-xl">👀</span>
-                  <span className="text-xs font-medium">
-                    {bionicReadingEnabled ? 'Disable ez-Read' : 'Enable ez-Read'}
-                  </span>
-                </>
-              )}
-            </button>
-
-            {/* Reading List */}
-            <div className="relative">  {/* Added wrapper div */}
-              <button
-                onClick={handleAddToReadingList}
-                disabled={addingToReadingList}
-                className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
-          bg-[#6752e0] hover:bg-[#5443b5]
-          text-white disabled:bg-gray-400 transition-colors
-          border border-[#4285f4]/20 shadow-lg w-full`}
-              >
-                {addingToReadingList ? (
-                  <>
-                    <span className="animate-spin text-lg">↻</span>
-                    <span className="text-xs">Adding...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-xl">📚</span>
-                    <span className="text-xs font-medium">Add to Reading List</span>
-                  </>
-                )}
-              </button>
-              {readingListMessage && (
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 
-                    bg-[#34A853] text-white px-3 py-2 rounded-md text-sm
-                    shadow-lg transition-all duration-200 ease-in-out
-                    whitespace-nowrap">
-                  Added to reading list!
-                </div>
-              )}
-            </div>
-
-            {/* screenshot */}
-            <div className="relative">  {/* Added wrapper div */}
-              <button
-                onClick={handleScreenshot}
-                disabled={takingScreenshot}
-                className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
-          bg-[#6752e0] hover:bg-[#5443b5]
-          text-white disabled:bg-gray-400 transition-colors
-          border border-[#4285f4]/20 shadow-lg w-full`}
-              >
-                {takingScreenshot ? (
-                  <>
-                    <span className="animate-spin text-lg">↻</span>
-                    <span className="text-xs">Capturing...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-xl">📸</span>
-                    <span className="text-xs font-medium">Screenshot</span>
-                  </>
-                )}
-              </button>
-              {showCopiedMessage && (
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 
-                    bg-[#34A853] text-white px-3 py-2 rounded-md text-sm
-                    shadow-lg transition-all duration-200 ease-in-out
-                    whitespace-nowrap">
-                  Copied to clipboard!
-                </div>
-              )}
-            </div>
-
-            {/* Reopen Last Tab */}
-            <button
-              onClick={handleReopenLastTab}
-              disabled={reopeningTab}
-              className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
-        bg-[#6752e0] hover:bg-[#5443b5]
-        text-white disabled:bg-gray-400 transition-colors
-        border border-[#4285f4]/20 shadow-lg`}
-            >
-              {reopeningTab ? (
-                <>
-                  <span className="animate-spin text-lg">↻</span>
-                  <span className="text-xs">Reopening...</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-xl">↩️</span>
-                  <span className="text-xs font-medium">Reopen Last Tab</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
 
 
         {/* switch to manual controls toggle */}
-        <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
           <span className="text-gray-200 text-sm font-medium">Switch to Manual Controls</span>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -767,10 +655,131 @@ function App() {
 
 
           <div >
+            <div className="border-t  pt-4 mt-2">
+              <div className='text-lg font-bold mb-2'>Quick Commands</div>
+              {/* grid with 4 options */}
+              <div className="pt-2">
+                <div className="grid grid-cols-2 gap-3 max-w-[350px] mx-auto">
+
+
+                  {/* ezRead Mode */}
+                  <button
+                    onClick={handleToggleBionicReading}
+                    disabled={toggling}
+                    className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+    ${bionicReadingEnabled
+                        ? 'bg-[#34A853] hover:bg-[#2E8B47]'
+                        : 'bg-[#6752e0] hover:bg-[#5443b5]'}
+    text-white disabled:bg-gray-400 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.1)] `}
+                  >
+                    {toggling ? (
+                      <>
+                        <span className="animate-spin text-lg">↻</span>
+                        <span className="text-xs">Updating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xl">👀</span>
+                        <span className="text-xs font-medium">
+                          {bionicReadingEnabled ? 'Disable ez-Read' : 'Enable ez-Read'}
+                        </span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Reading List */}
+                  <div className="relative">  {/* Added wrapper div */}
+                    <button
+                      onClick={handleAddToReadingList}
+                      disabled={addingToReadingList}
+                      className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+          bg-[#6752e0] hover:bg-[#5443b5]
+          text-white disabled:bg-gray-400 transition-colors
+          border border-[#4285f4]/20 shadow-lg w-full`}
+                    >
+                      {addingToReadingList ? (
+                        <>
+                          <span className="animate-spin text-lg">↻</span>
+                          <span className="text-xs">Adding...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xl">📚</span>
+                          <span className="text-xs font-medium">Add to Reading List</span>
+                        </>
+                      )}
+                    </button>
+                    {readingListMessage && (
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 
+                    bg-[#34A853] text-white px-3 py-2 rounded-md text-sm
+                    shadow-lg transition-all duration-200 ease-in-out
+                    whitespace-nowrap">
+                        Added to reading list!
+                      </div>
+                    )}
+                  </div>
+
+                  {/* screenshot */}
+                  <div className="relative">  {/* Added wrapper div */}
+                    <button
+                      onClick={handleScreenshot}
+                      disabled={takingScreenshot}
+                      className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+          bg-[#6752e0] hover:bg-[#5443b5]
+          text-white disabled:bg-gray-400 transition-colors
+          border border-[#4285f4]/20 shadow-lg w-full`}
+                    >
+                      {takingScreenshot ? (
+                        <>
+                          <span className="animate-spin text-lg">↻</span>
+                          <span className="text-xs">Capturing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xl">📸</span>
+                          <span className="text-xs font-medium">Screenshot</span>
+                        </>
+                      )}
+                    </button>
+                    {showCopiedMessage && (
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 
+                    bg-[#34A853] text-white px-3 py-2 rounded-md text-sm
+                    shadow-lg transition-all duration-200 ease-in-out
+                    whitespace-nowrap">
+                        Copied to clipboard!
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Reopen Last Tab */}
+                  <button
+                    onClick={handleReopenLastTab}
+                    disabled={reopeningTab}
+                    className={`px-3 py-4 rounded-lg flex flex-col items-center justify-center gap-2 
+        bg-[#6752e0] hover:bg-[#5443b5]
+        text-white disabled:bg-gray-400 transition-colors
+        border border-[#4285f4]/20 shadow-lg`}
+                  >
+                    {reopeningTab ? (
+                      <>
+                        <span className="animate-spin text-lg">↻</span>
+                        <span className="text-xs">Reopening...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xl">↩️</span>
+                        <span className="text-xs font-medium">Reopen Last Tab</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+            </div>
 
 
             {/* Navigation section */}
-            <div className="border-t  pt-4 mt-2">
+            <div className="border-t  pt-4 mt-4 border-gray-700">
               <div className='text-lg font-bold mb-2'>Navigation</div>
               <form onSubmit={handleNavigationCommand} className="flex flex-col gap-3">
                 <input
@@ -934,7 +943,7 @@ function App() {
                 <div className="text-gray-400 text-sm font-medium mb-2">Clear History</div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleClearHistory('last24h')}
+                    onClick={() => handleClearHistory('last 24 hours')}
                     disabled={clearingHistory}
                     className="flex-1 bg-[#EA4335]/20 text-[#EA4335] px-4 py-2 rounded-lg hover:bg-[#EA4335]/15 
                     border border-[#EA4335]/10 disabled:bg-gray-800 disabled:text-gray-500 transition-all duration-200"
