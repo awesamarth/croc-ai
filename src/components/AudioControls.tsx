@@ -13,7 +13,7 @@ export function AudioControls({ text, onClose }: AudioControlsProps) {
   const [speed, setSpeed] = useState(1);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   
-  const speeds = [0.5, 0.75, 1, 1.5, 2];
+  const speeds = [0.5, 0.75, 1, 1.25, 1.5];
 
   useEffect(() => {
     utteranceRef.current = new SpeechSynthesisUtterance(text);

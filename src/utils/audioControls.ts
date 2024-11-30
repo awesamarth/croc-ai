@@ -63,7 +63,7 @@ export function createAudioControls(textToSpeak: string) {
       gap: 0.5rem;
     `;
 
-    [0.5, 0.75, 1, 1.5, 2].forEach(speed => {
+    [0.5, 0.75, 1, 1.25, 1.5].forEach(speed => {
         const speedButton = document.createElement('button');
         speedButton.textContent = `${speed}x`;
         speedButton.style.cssText = `

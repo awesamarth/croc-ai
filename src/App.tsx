@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { searchBookmarksWithAI } from './utils/bookmarks'
 import { getExplanationStream } from './utils/explain'
 import { captureAndSaveScreenshot } from './utils/screenshot';
@@ -14,6 +14,7 @@ import { adjustFontSize, reopenLastClosedTab, resetFontSize, toggleBionicReading
 import { getReminders, deleteReminder, type Reminder, createReminderManual } from './utils/reminders';
 import crocLogo from '/icons/croc256.png'
 import { useVoiceCommand } from './hooks/useVoiceCommand';
+import ReactMarkdown from 'react-markdown';
 
 
 
@@ -105,19 +106,42 @@ function App() {
     }
   }
 
-  useEffect(() => {
+  const handleAutoTranslateToggle = (checked: boolean) => {
+    setAutoTranslateEnabled(checked);
     chrome.storage.local.set({
-      autoTranslateEnabled,
-      targetLanguage
+      autoTranslateEnabled: checked,
+      targetLanguage: targetLanguage // Save current language too
     });
-  }, [autoTranslateEnabled, targetLanguage]);
-  useEffect(() => {
+    // chrome.runtime.sendMessage({
+    //   type: 'setAutoTranslate',
+    //   enabled: checked,
+    //   targetLanguage
+    // });
+  };
+
+  const handleTargetLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLanguage = event.target.value;
+    setTargetLanguage(newLanguage);
+    chrome.storage.local.set({ targetLanguage: newLanguage });
+  };
+
+  const handleTransliterationToggle = (checked: boolean) => {
+    setTransliterationEnabled(checked);
     chrome.storage.local.set({
-      transliterationEnabled,
-      transliterationTargetLanguage
+      transliterationEnabled: checked,
+      transliterationTargetLanguage // Only save transliteration language
     });
-    console.log("language changed to ", transliterationTargetLanguage)
-  }, [transliterationEnabled, transliterationTargetLanguage]);
+  };
+
+  const handleTransliterationTargetChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newTarget = event.target.value;
+    setTransliterationTargetLanguage(newTarget);
+    chrome.storage.local.set({
+      transliterationTargetLanguage: newTarget,
+      transliterationEnabled // Make sure to persist the toggle state
+    });
+  };
+
   useEffect(() => {
     chrome.runtime.onMessage.addListener((message) => {
       console.log("Message received in App:", message);
@@ -147,8 +171,40 @@ function App() {
       setReminders(existingReminders);
     };
     loadReminders();
+    chrome.storage.local.get(
+      ['autoTranslateEnabled', 'targetLanguage', 'transliterationTargetLanguage', 'transliterationEnabled'],
+      (result) => {
+        if (result.autoTranslateEnabled !== undefined) {
+          setAutoTranslateEnabled(result.autoTranslateEnabled);
+        }
+        if (result.targetLanguage) {
+          setTargetLanguage(result.targetLanguage);
+        }
+        if (result.transliterationTargetLanguage) {
+          setTransliterationTargetLanguage(result.transliterationTargetLanguage);
+        }
+        if (result.transliterationEnabled !== undefined) {
+          setTransliterationEnabled(result.transliterationEnabled);
+        }
+      }
+    );
 
   }, []);
+
+  useEffect(() => {
+    chrome.storage.local.set({
+      autoTranslateEnabled,
+      targetLanguage
+    });
+  }, [autoTranslateEnabled, targetLanguage]);
+  useEffect(() => {
+    chrome.storage.local.set({
+      transliterationEnabled,
+      transliterationTargetLanguage
+    });
+    console.log("language changed to ", transliterationTargetLanguage)
+  }, [transliterationEnabled, transliterationTargetLanguage]);
+
   useEffect(() => {
     // Only submit if command exists and came from voice input
     if (command && isListening) {
@@ -306,26 +362,28 @@ function App() {
   const handleToggleHighContrast = async () => {
     try {
       setTogglingContrast(true);
-
-      // Get all tabs
+      await chrome.storage.local.set({ highContrastEnabled: !highContrastEnabled });
+      
       const tabs = await chrome.tabs.query({});
-
-      // Send message to all tabs except chrome:// urls
+      
+      // Try to send message to all tabs, but don't wait for responses
       await Promise.all(tabs.map(async (tab) => {
         if (tab.id && !tab.url?.startsWith('chrome://')) {
-          await chrome.tabs.sendMessage(tab.id, {
-            type: 'toggleHighContrast',
-            enable: !highContrastEnabled
-          });
+          try {
+            await chrome.tabs.sendMessage(tab.id, {
+              type: 'toggleHighContrast',
+              enable: !highContrastEnabled
+            });
+          } catch (error) {
+            // Ignore connection errors for tabs without content script
+            console.error(`Error applying to tab ${tab.id}:`, error);
+          }
         }
       }));
-
-      // Update storage
-      await chrome.storage.local.set({
-        highContrastEnabled: !highContrastEnabled
-      });
-
+  
+      // Update UI state regardless of tab messages
       setHighContrastEnabled(!highContrastEnabled);
+      
     } catch (error) {
       console.error('Error toggling high contrast:', error);
     } finally {
@@ -420,11 +478,12 @@ function App() {
       setCommand(''); // Clear input on success
 
       // Add timeout to clear the result after 2 seconds if it's "done!"
-      if (result === "done!") {
+      if (result === "done!"|| result === "copied to clipboard!") {
         setTimeout(() => {
           setCommandResult(null);
         }, 2000);
       }
+
 
     } catch (error) {
       console.error('Command execution error:', error);
@@ -493,7 +552,7 @@ function App() {
               className="bg-chrome-blue hover:bg-opacity-90 text-white px-4 py-2 rounded-lg disabled:bg-gray-600 transition-colors"
               disabled={isProcessing}
             >
-              {isProcessing ? 'Processing...' : 'Execute'}
+              {isProcessing ? 'Processing...' : 'Go!'}
             </button>
           </form>
           {commandResult && (
@@ -535,7 +594,9 @@ function App() {
                 </svg>
               </button>
             </div>
-            <p className="text-gray-300 pr-16">{explanation}</p>
+            <p className="text-gray-300 pr-16">
+              <ReactMarkdown>{explanation}</ReactMarkdown>
+              </p>
           </div>
         )}
 
@@ -557,7 +618,7 @@ function App() {
                 </svg>
               </button>
             </div>
-            <p className="text-gray-300 pr-16">{summaryArbitrary}</p>
+            <p className="text-gray-300 pr-16"><ReactMarkdown>{summaryArbitrary}</ReactMarkdown></p>
           </div>
         )}
 
@@ -570,7 +631,7 @@ function App() {
               <select
                 className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
                 value={targetLanguage}
-                onChange={(e) => setTargetLanguage(e.target.value)}
+                onChange={handleTargetLanguageChange}
                 disabled={!autoTranslateEnabled}
               >
                 {SUPPORTED_LANGUAGES.map(lang => (
@@ -585,20 +646,20 @@ function App() {
                 type="checkbox"
                 className="sr-only peer"
                 checked={autoTranslateEnabled}
-                onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
+                onChange={(e) => handleAutoTranslateToggle(e.target.checked)}
               />
               <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90" />
             </label>
           </div>
 
-          {/* Transliterate row */}
+          {/* Transliteration row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-gray-200 text-sm font-medium">Transliterate to</span>
               <select
                 className="bg-gray-700 text-gray-200 text-sm rounded-md border border-gray-600 py-1 px-2 outline-none focus:ring-1 focus:ring-chrome-blue"
                 value={transliterationTargetLanguage}
-                onChange={(e) => setTransliterationTargetLanguage(e.target.value)}
+                onChange={handleTransliterationTargetChange}
                 disabled={!transliterationEnabled}
               >
                 <option value="hi">हिंदी</option>
@@ -610,7 +671,7 @@ function App() {
                 type="checkbox"
                 className="sr-only peer"
                 checked={transliterationEnabled}
-                onChange={(e) => setTransliterationEnabled(e.target.checked)}
+                onChange={(e) => handleTransliterationToggle(e.target.checked)}
               />
               <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-chrome-blue peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all hover:bg-gray-500 peer-checked:hover:bg-chrome-blue/90" />
             </label>

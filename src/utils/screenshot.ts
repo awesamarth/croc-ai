@@ -32,6 +32,8 @@ export async function captureAndSaveScreenshot(): Promise<void> {
       
       await chrome.downloads.download(downloadOptions);
       URL.revokeObjectURL(url);
+
+      return true
       
     } catch (error) {
       console.error('Detailed screenshot error:', error);

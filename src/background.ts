@@ -45,14 +45,14 @@ chrome.runtime.onInstalled.addListener(async() => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'setAutoTranslate') {
-    chrome.storage.local.set({
-      autoTranslateEnabled: message.enabled,
-      targetLanguage: message.targetLanguage
-    });
-  }
-});
+// chrome.runtime.onMessage.addListener((message) => {
+//   if (message.type === 'setAutoTranslate') {
+//     chrome.storage.local.set({
+//       autoTranslateEnabled: message.enabled,
+//       targetLanguage: message.targetLanguage
+//     });
+//   }
+// });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   console.log("Context menu clicked:", info.menuItemId);

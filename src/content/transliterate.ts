@@ -27,8 +27,7 @@ export async function transliterateElement(element: Element, targetLanguage: str
           // If it's text, transliterate it
           if (part.trim()) {
             const result = await transliterate(part, targetLanguage);
-            return  result.transliteratedText
-              
+            return result.transliteratedText;
           }
           return part;
         })
@@ -47,16 +46,18 @@ export async function transliterateElement(element: Element, targetLanguage: str
       revertButton.textContent = 'Show Original';
       revertButton.className = 'croc-revert-btn';
       
+      let isShowingTransliterated = true;
       revertButton.onclick = () => {
-        if (element.classList.contains('croc-transliterated')) {
+        if (isShowingTransliterated) {
           element.innerHTML = originalHtml;
           element.classList.remove('croc-transliterated');
-          revertButton.textContent = 'Show Translation';
+          revertButton.textContent = 'Show Transliteration';
         } else {
           element.innerHTML = transliteratedHtml;
           element.classList.add('croc-transliterated');
           revertButton.textContent = 'Show Original';
         }
+        isShowingTransliterated = !isShowingTransliterated;
       };
 
       element.parentNode?.insertBefore(revertButton, element.nextSibling);
@@ -107,7 +108,8 @@ export async function handleContextMenuTransliteration(selection: string, target
     } catch (error) {
       console.error('Error in transliteration:', error);
     }
-} else {
+} else 
+{
     // Regular element handling remains the same
     const result = await transliterate(selection, targetLanguage);
 
@@ -119,14 +121,16 @@ export async function handleContextMenuTransliteration(selection: string, target
     revertButton.textContent = 'Show Original';
     revertButton.className = 'croc-revert-btn';
     
+    let isShowingTransliterated = true;
     revertButton.onclick = () => {
-      if (transliteratedSpan.textContent === result.transliteratedText) {
+      if (isShowingTransliterated) {
         transliteratedSpan.textContent = selection;
         revertButton.textContent = 'Show Transliteration';
       } else {
         transliteratedSpan.textContent = result.transliteratedText;
         revertButton.textContent = 'Show Original';
       }
+      isShowingTransliterated = !isShowingTransliterated;
     };
 
     range.deleteContents();
@@ -139,28 +143,46 @@ export async function handleContextMenuTransliteration(selection: string, target
 }
 export function initializeTransliterate() {
   const style = document.createElement('style');
-style.textContent = `
-  .croc-wrapper {
-    display: inline;
-    margin: 0;
-    padding: 0;
-  }
-  .croc-transliterated {
-    display: inline;
-    margin: 0;
-    padding: 0;
-  }
-  .croc-revert-btn {
-    font-size: 12px;
-    padding: 2px 6px;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    margin-left: 4px;
-    cursor: pointer;
-    vertical-align: middle;
-  }
-`;
+  style.textContent = `
+    .croc-wrapper {
+      display: inline;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .croc-translated {
+      display: inline;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .croc-revert-btn {
+      font-size: 11px;
+      padding: 2px 8px;
+      margin-left: 6px;
+      cursor: pointer;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      vertical-align: middle;
+      line-height: 20px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+  
+    .croc-revert-btn:hover {
+      background-color: #1a73e8;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      opacity: 1;
+    }
+  
+    .croc-revert-btn:active {
+      transform: scale(0.98);
+    }
+  `;
   document.head.appendChild(style);
 
   chrome.runtime.onMessage.addListener(async (message) => {

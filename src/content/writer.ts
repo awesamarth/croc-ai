@@ -9,22 +9,19 @@ interface WriterOptions {
 export async function generateText(text: string, options: WriterOptions): Promise<string> {
     try {
         if (options.mode === 'rewrite') {
+
+            console.log("mode is rewrite");
             // Use Rewriter API
             //@ts-ignore
-            const rewriter = await ai.rewriter.create({
-                tone: options.tone === 'casual' ? 'more-casual' : 
-                      options.tone === 'formal' ? 'more-formal' : 'as-is',
-                length: options.length === 'short' ? 'shorter' :
-                       options.length === 'long' ? 'longer' : 'as-is',
-                format: 'plain-text'
-            });
-            
+            const rewriter = await ai.rewriter.create();
+
             const result = await rewriter.rewrite(text);
             rewriter.destroy();
             return result;
         } else {
             // Use Writer API
             console.log('using the writer api')
+            console.log(options.tone)
             //@ts-ignore
             const writer = await ai.writer.create({
                 tone: options.tone === 'professional' ? 'formal' : options.tone,
@@ -169,29 +166,47 @@ export function initializeWriter() {
         border-top: 4px solid #ffffff;
         pointer-events: none;
     }`;
-    
+
     document.head.appendChild(style);
 
-    chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+    chrome.runtime.onMessage.addListener((message) => {
         if (message.type === 'showWriter') {
             const activeElement = document.activeElement;
-            if (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement) {
-                showWriterPopup(activeElement);
+
+            const isEditable = activeElement && (
+                activeElement instanceof HTMLInputElement ||
+                activeElement instanceof HTMLTextAreaElement ||
+                activeElement.hasAttribute('contenteditable') ||
+                activeElement.closest('.editable') ||
+                activeElement.closest('[role="textbox"]') ||
+                activeElement.closest('.ql-editor') ||
+                activeElement.closest('.tox-edit-area')
+            );
+
+            // Remove this restrictive check
+            if (isEditable) {  // <-- Changed this line
+                showWriterPopup(activeElement as HTMLInputElement | HTMLTextAreaElement);
             }
+
+            console.log('Writer triggered for element:', {
+                element: activeElement,
+                isEditable,
+                tagName: activeElement?.tagName,
+                className: activeElement?.className
+            });
         }
-        sendResponse({});
     });
 }
 
-function showWriterPopup(inputElement: HTMLInputElement | HTMLTextAreaElement) {
+function showWriterPopup(inputElement: HTMLElement) {
     const existingPopup = document.querySelector('.croc-writer-popup');
     if (existingPopup) existingPopup.remove();
     const existingOverlay = document.querySelector('.croc-writer-overlay');
     if (existingOverlay) existingOverlay.remove();
-   
+
     const overlay = document.createElement('div');
     overlay.className = 'croc-writer-overlay';
-   
+
     const popup = document.createElement('div');
     popup.className = 'croc-writer-popup';
 
@@ -211,16 +226,19 @@ function showWriterPopup(inputElement: HTMLInputElement | HTMLTextAreaElement) {
             button.classList.add('active');
         });
     });
-   
+
     // Create textarea
     const textarea = document.createElement('textarea');
     textarea.className = 'croc-writer-textarea';
-    textarea.value = inputElement.value;
-   
+    const initialValue = inputElement instanceof HTMLInputElement || inputElement instanceof HTMLTextAreaElement
+        ? inputElement.value
+        : inputElement.textContent || '';
+    textarea.value = initialValue;
+
     // Create options row
     const options = document.createElement('div');
     options.className = 'croc-writer-options';
-    
+
     const toneOption = document.createElement('div');
     toneOption.className = 'croc-writer-option';
     toneOption.innerHTML = `
@@ -246,58 +264,65 @@ function showWriterPopup(inputElement: HTMLInputElement | HTMLTextAreaElement) {
 
     options.appendChild(toneOption);
     options.appendChild(lengthOption);
-   
+
     // Create apply button
     const applyButton = document.createElement('button');
     applyButton.className = 'croc-writer-submit';
     applyButton.textContent = 'Apply';
-   
-    applyButton.onclick = async () => {
-      try {
-        applyButton.disabled = true;
-        applyButton.textContent = 'Generating...';
-   
-        const activeTab = tabs.querySelector('.active') as HTMLElement;
-        const toneSelect = toneOption.querySelector('select') as HTMLSelectElement;
-        const lengthSelect = lengthOption.querySelector('select') as HTMLSelectElement;
 
-        const options: WriterOptions = {
-          mode: activeTab.textContent?.toLowerCase().includes('rewrite') ? 'rewrite' : 'write_new',
-          tone: toneSelect.value as 'casual' | 'formal' | 'professional',
-          length: lengthSelect.value as 'short' | 'medium' | 'long',
-        };
-   
-        const text = textarea.value || 'Write something creative';
-        console.log("generating text")
-        const generated = await generateText(text, options);
-        console.log(generated)
-   
-        inputElement.value = generated;
-        inputElement.dispatchEvent(new Event('input', { bubbles: true }));
-        
-        popup.remove();
-        overlay.remove();
-   
-      } catch (error) {
-        console.error('Writer error:', error);
-        applyButton.textContent = 'Error - Try Again';
-        applyButton.disabled = false;
-      }
+    applyButton.onclick = async () => {
+        try {
+            applyButton.disabled = true;
+            applyButton.textContent = 'Generating...';
+
+            const activeTab = tabs.querySelector('.active') as HTMLElement;
+            const toneSelect = toneOption.querySelector('select') as HTMLSelectElement;
+            const lengthSelect = lengthOption.querySelector('select') as HTMLSelectElement;
+
+            const options: WriterOptions = {
+                mode: activeTab.textContent?.toLowerCase().includes('rewrite') ? 'rewrite' : 'write_new',
+                tone: toneSelect.value as 'casual' | 'formal' | 'professional',
+                length: lengthSelect.value as 'short' | 'medium' | 'long',
+            };
+
+            const text = textarea.value || 'Write something creative';
+            const generated = await generateText(text, options);
+
+            // Update the input element with generated text
+            if (inputElement instanceof HTMLInputElement || inputElement instanceof HTMLTextAreaElement) {
+                inputElement.value = generated;
+                inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+                //@ts-ignore
+            } else if (inputElement.hasAttribute('contenteditable') || inputElement.closest('[role="textbox"]')) {
+                //@ts-ignore
+                inputElement.textContent = generated;
+                //@ts-ignore
+                inputElement.dispatchEvent(new InputEvent('input', { bubbles: true }));
+            }
+
+            popup.remove();
+            overlay.remove();
+
+        } catch (error) {
+            console.error('Writer error:', error);
+            applyButton.textContent = 'Error - Try Again';
+            applyButton.disabled = false;
+        }
     };
-   
+
     // Assemble popup
     popup.appendChild(tabs);
     popup.appendChild(textarea);
     popup.appendChild(options);
     popup.appendChild(applyButton);
-   
+
     overlay.onclick = (e) => {
-      if (e.target === overlay) {
-        popup.remove();
-        overlay.remove();
-      }
+        if (e.target === overlay) {
+            popup.remove();
+            overlay.remove();
+        }
     };
-   
+
     document.body.appendChild(overlay);
     document.body.appendChild(popup);
 }

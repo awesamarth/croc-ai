@@ -138,6 +138,10 @@ export async function executeCommand(parsed: ParsedFunction): Promise<string> {
         console.log("result is here")
         console.log(result)
         if (result===true){
+
+            if (funcDef.name==="captureScreenshot"){
+                return "copied to clipboard!";
+            }
             return "done!";
 
         }

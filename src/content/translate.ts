@@ -48,8 +48,9 @@ export async function translateElement(element: Element, targetLanguage: string)
       revertButton.textContent = 'Show Original';
       revertButton.className = 'croc-revert-btn';
       
+      let isShowingTranslated = true;
       revertButton.onclick = () => {
-        if (element.classList.contains('croc-translated')) {
+        if (isShowingTranslated) {
           element.innerHTML = originalHtml;
           element.classList.remove('croc-translated');
           revertButton.textContent = 'Show Translation';
@@ -58,6 +59,7 @@ export async function translateElement(element: Element, targetLanguage: string)
           element.classList.add('croc-translated');
           revertButton.textContent = 'Show Original';
         }
+        isShowingTranslated = !isShowingTranslated;
       };
 
       element.parentNode?.insertBefore(revertButton, element.nextSibling);
@@ -91,18 +93,20 @@ export async function handleContextMenuTranslation(selection: string, targetLang
   translatedSpan.textContent = result.translatedText;
   translatedSpan.className = 'croc-translated';
 
-  originalTexts.set(translatedSpan, selection);
-
   const revertButton = document.createElement('button');
   revertButton.textContent = 'Show Original';
   revertButton.className = 'croc-revert-btn';
+  
+  let isShowingTranslated = true;
   revertButton.onclick = () => {
-    translatedSpan.textContent = selection;
-    revertButton.textContent = 'Show Translation';
-    revertButton.onclick = () => {
+    if (isShowingTranslated) {
+      translatedSpan.textContent = selection;
+      revertButton.textContent = 'Show Translation';
+    } else {
       translatedSpan.textContent = result.translatedText;
       revertButton.textContent = 'Show Original';
-    };
+    }
+    isShowingTranslated = !isShowingTranslated;
   };
 
   range.deleteContents();
@@ -112,28 +116,46 @@ export async function handleContextMenuTranslation(selection: string, targetLang
 
 export function initializeTranslate() {
   const style = document.createElement('style');
-style.textContent = `
-  .croc-wrapper {
-    display: inline;
-    margin: 0;
-    padding: 0;
-  }
-  .croc-translated {
-    display: inline;
-    margin: 0;
-    padding: 0;
-  }
-  .croc-revert-btn {
-    font-size: 12px;
-    padding: 2px 6px;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    margin-left: 4px;
-    cursor: pointer;
-    vertical-align: middle;
-  }
-`;
+  style.textContent = `
+    .croc-wrapper {
+      display: inline;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .croc-translated {
+      display: inline;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .croc-revert-btn {
+      font-size: 11px;
+      padding: 2px 8px;
+      margin-left: 6px;
+      cursor: pointer;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      vertical-align: middle;
+      line-height: 20px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+  
+    .croc-revert-btn:hover {
+      background-color: #1a73e8;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      opacity: 1;
+    }
+  
+    .croc-revert-btn:active {
+      transform: scale(0.98);
+    }
+  `;
   document.head.appendChild(style);
 
   chrome.runtime.onMessage.addListener(async (message) => {
