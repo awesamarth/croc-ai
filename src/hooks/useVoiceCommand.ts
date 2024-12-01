@@ -47,10 +47,10 @@ export const useVoiceCommand = (onCommand: (command: string) => void) => {
   
         recognition.start();
       } catch (error) {
-        console.error('Error starting voice input:', error);
+        console.error('Error starting voice input: ', error);
         setIsListening(false);
         if (error instanceof DOMException && error.name === 'NotAllowedError') {
-          alert('Please allow microphone access in your browser settings');
+          alert('Please allow microphone access in your browser settings by going to extension, clicking details under Croc AI, going to site settings, and enabling microphone access');
         }
       }
     }, [onCommand]);
