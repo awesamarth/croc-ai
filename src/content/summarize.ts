@@ -358,10 +358,3 @@ export const initializeSummarize = () => {
 }
 
 // Add this at the bottom of summarize.ts, near initializeSummarize
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'readAloud' && message.text) {
-    console.log("read aloud message received")
-    createAudioControls(message.text);
-
-  }
-});
