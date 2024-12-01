@@ -1,6 +1,9 @@
 # ![Croc AI Icon](https://github.com/user-attachments/assets/d0667f83-1e02-49dc-a9c7-a74a40415930) Croc AI
 *Your friendly neighbourhood browser assistant* 
 
+## What is Croc AI?
+Croc AI is a sidebar-by-default extension that uses in-browser Gemini Nano to transform Chrome into an intelligent companion with an input bar where you can either use text or your voice to enter what you want to do in natural language. 
+
 ## How to install
 To install this extension, check the Releases section on this page. Click on the latest release and then click on dist.zip to download it. Once that is done, unzip the folder, go to `chrome://extensions`, enable developer mode, click on load unpacked and select the unzipped folder. Croc AI should now show up in your extensions.
 
