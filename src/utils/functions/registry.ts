@@ -218,18 +218,6 @@ export const functionRegistry: FunctionDefinition[] = [
   },
 
   {
-    name: "addToReadingList",
-    description: "Save current page to reading list",
-    parameters: [],
-    examples: [
-      "save to reading list",
-      "add page to reading list",
-      "save this for later",
-    ],
-    handler: "addToReadingList"
-  },
-
-  {
     name: "captureScreenshot",
     description: "Take a screenshot of current page",
     parameters: [],
