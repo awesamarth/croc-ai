@@ -22,6 +22,8 @@ This extension can currently work on the latest Chrome Dev and Chrome Canary bui
 ## How to use
 Use the main command input box to specify what you want Croc to do. You can use natural language, either via text or via voice. You can also enable manual controls to pick specific functions and execute them directly. Read on to find out what's possible
    
+## Demo
+[![YouTube](http://i.ytimg.com/vi/kPai4Wv5oCE/hqdefault.jpg)](https://www.youtube.com/watch?v=kPai4Wv5oCE)
 
 ## What can you do using the command box?
 - **Smart search:** You can search your bookmarks, history and tabs using natural language. Eg. search my history for cat videos, search my tabs for Devpost etc.
