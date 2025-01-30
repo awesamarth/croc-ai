@@ -23,6 +23,9 @@ This extension can currently work on the latest Chrome Dev and Chrome Canary bui
 Use the main command input box to specify what you want Croc to do. You can use natural language, either via text or via voice. You can also enable manual controls to pick specific functions and execute them directly. Read on to find out what's possible
    
 ## Demo
+<iframe width="560" height="315" src="https://www.youtube.com/embed/kPai4Wv5oCE?si=Ulqz9Cxz3dWbfO3e" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+
 [![YouTube](http://i.ytimg.com/vi/kPai4Wv5oCE/hqdefault.jpg)](https://www.youtube.com/watch?v=kPai4Wv5oCE)
 
 ## What can you do using the command box?
