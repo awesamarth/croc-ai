@@ -4,6 +4,9 @@
 ## What is Croc AI?
 Croc AI is a sidebar-by-default extension that uses in-browser Gemini Nano to transform Chrome into an intelligent companion with an input bar where you can either use text or your voice to enter what you want to do in natural language. 
 
+## Video Demo
+[![YouTube](http://i.ytimg.com/vi/kPai4Wv5oCE/hqdefault.jpg)](https://www.youtube.com/watch?v=kPai4Wv5oCE)
+
 ## How to install
 To install this extension, check the Releases section on this page. Click on the latest release and then click on dist.zip to download it. Once that is done, unzip the folder, go to `chrome://extensions`, enable developer mode, click on load unpacked and select the unzipped folder. Croc AI should now show up in your extensions.
 
@@ -21,9 +24,6 @@ This extension can currently work on the latest Chrome Dev and Chrome Canary bui
 
 ## How to use
 Use the main command input box to specify what you want Croc to do. You can use natural language, either via text or via voice. You can also enable manual controls to pick specific functions and execute them directly. Read on to find out what's possible
-   
-## Video Demo
-[![YouTube](http://i.ytimg.com/vi/kPai4Wv5oCE/hqdefault.jpg)](https://www.youtube.com/watch?v=kPai4Wv5oCE)
 
 ## What can you do using the command box?
 - **Smart search:** You can search your bookmarks, history and tabs using natural language. Eg. search my history for cat videos, search my tabs for Devpost etc.
